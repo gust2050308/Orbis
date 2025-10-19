@@ -1,3 +1,4 @@
+'use client' 
 import { useState, createContext, type FC } from "react";
 import type { ReactNode } from "react";
 import type { AppProviderProps } from "../Types/AppTypes";
