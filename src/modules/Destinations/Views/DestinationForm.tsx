@@ -1,0 +1,289 @@
+'use client';
+
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { useState, useEffect } from 'react';
+import { Loader2, MapPin, Save, Image as ImageIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+    Form,
+    FormControl,
+    FormDescription,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
+import { useToast } from '@/hooks/use-toast';
+import { destinationSchema, DestinationFormData } from '../types/TypesDestinations';
+import { destinationService } from '../Services/destinationService';
+import { DestinationMap } from './DestinationMap';
+import { ImageUploader } from './Images/ImageUploader';
+import { DestinationImage } from '../types/TypesImages';
+import { destinationImagesService } from '../Services/destinationImagesService';
+
+const defaultCenter = {
+    lat: 19.4326,
+    lng: -99.1332,
+};
+
+type DestinationFormProps = {
+    onSuccess?: () => void;
+    initialData?: DestinationFormData;
+    destinationId?: number; // Para editar y cargar imágenes existentes
+};
+
+export function DestinationForm({ onSuccess, initialData, destinationId }: DestinationFormProps) {
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [images, setImages] = useState<DestinationImage[]>([]);
+    const [savedDestinationId, setSavedDestinationId] = useState<number | undefined>(destinationId);
+    const { toast } = useToast();
+
+    const form = useForm<DestinationFormData>({
+        resolver: zodResolver(destinationSchema),
+        defaultValues: initialData || {
+            name: '',
+            country: '',
+            short_description: '',
+            description: '',
+            latitude: defaultCenter.lat,
+            longitude: defaultCenter.lng,
+            is_active: true,
+        },
+    });
+
+    // Cargar imágenes existentes si es edición
+    useEffect(() => {
+        if (savedDestinationId) {
+            destinationImagesService
+                .getImagesByDestination(savedDestinationId)
+                .then(setImages)
+                .catch((err) => console.error('Error al cargar imágenes:', err));
+        }
+    }, [savedDestinationId]);
+
+    const handleLocationChange = (lat: number, lng: number) => {
+        form.setValue('latitude', lat);
+        form.setValue('longitude', lng);
+    };
+
+    const onSubmit = async (data: DestinationFormData) => {
+        setIsSubmitting(true);
+        try {
+            const destination = await destinationService.create(data);
+            setSavedDestinationId(destination.id); // Guardar ID para permitir subir imágenes
+
+            toast({
+                title: '✅ Destino creado',
+                description: `${data.name} se ha guardado correctamente. Ahora puedes agregar imágenes.`,
+                style: { backgroundColor: '#07BEB8', color: '#F7F5FB' },
+            });
+
+            // NO resetear el form para permitir subir imágenes
+            // form.reset();
+            // onSuccess?.();
+        } catch (error) {
+            console.error('Error al guardar destino:', error);
+            toast({
+                title: '❌ Error',
+                description: 'No se pudo guardar el destino. Intenta de nuevo.',
+                variant: 'destructive',
+            });
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    const handleFinish = () => {
+        form.reset();
+        setSavedDestinationId(undefined);
+        setImages([]);
+        onSuccess?.();
+    };
+
+    const latitude = form.watch('latitude');
+    const longitude = form.watch('longitude');
+
+    return (
+        <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                        control={form.control}
+                        name="name"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-[#102542]">
+                                    Nombre del destino <span className="text-red-500">*</span>
+                                </FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Ej: Teotihuacán"
+                                        className="border-[#256EFF]/20 focus:border-[#256EFF]"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="country"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-[#102542]">País</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        placeholder="Ej: México"
+                                        className="border-[#256EFF]/20 focus:border-[#256EFF]"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
+                        )}
+                    />
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="short_description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="text-[#102542]">Descripción corta</FormLabel>
+                            <FormControl>
+                                <Input
+                                    placeholder="Breve descripción para listados (máx. 200 caracteres)"
+                                    className="border-[#256EFF]/20 focus:border-[#256EFF]"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormDescription className="text-[#102542]/60">
+                                Aparecerá en las tarjetas de destinos
+                            </FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <FormField
+                    control={form.control}
+                    name="description"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel className="text-[#102542]">Descripción completa</FormLabel>
+                            <FormControl>
+                                <Textarea
+                                    placeholder="Descripción detallada del destino..."
+                                    className="min-h-[120px] border-[#256EFF]/20 focus:border-[#256EFF]"
+                                    {...field}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
+
+                <div className="space-y-3">
+                    <div className="flex items-center gap-2">
+                        <MapPin className="w-5 h-5 text-[#07BEB8]" />
+                        <FormLabel className="text-[#102542] text-base font-semibold">
+                            Ubicación en el mapa
+                        </FormLabel>
+                    </div>
+                    <div className="rounded-lg overflow-hidden border border-[#256EFF]/20 shadow-sm">
+                        <DestinationMap
+                            center={{ lat: latitude, lng: longitude }}
+                            onLocationChange={handleLocationChange}
+                        />
+                    </div>
+                    <div className="flex gap-4 text-sm text-[#102542]/70 bg-[#F7F5FB] p-3 rounded-md">
+                        <div>
+                            <span className="font-medium">Lat:</span> {latitude.toFixed(6)}
+                        </div>
+                        <div>
+                            <span className="font-medium">Lng:</span> {longitude.toFixed(6)}
+                        </div>
+                    </div>
+                    <FormDescription className="text-[#102542]/60">
+                        Haz clic en el mapa o arrastra el marcador para seleccionar la ubicación
+                    </FormDescription>
+                </div>
+
+                <FormField
+                    control={form.control}
+                    name="is_active"
+                    render={({ field }) => (
+                        <FormItem className="flex items-center justify-between rounded-lg border border-[#256EFF]/20 p-4 bg-[#F7F5FB]">
+                            <div className="space-y-0.5">
+                                <FormLabel className="text-[#102542] font-medium">Destino activo</FormLabel>
+                                <FormDescription className="text-[#102542]/60">
+                                    Los destinos activos son visibles para los usuarios
+                                </FormDescription>
+                            </div>
+                            <FormControl>
+                                <Switch
+                                    checked={field.value}
+                                    onCheckedChange={field.onChange}
+                                    className="data-[state=checked]:bg-[#07BEB8]"
+                                />
+                            </FormControl>
+                        </FormItem>
+                    )}
+                />
+
+                {/* Sección de imágenes - Solo si ya se guardó el destino */}
+                {savedDestinationId && (
+                    <div className="space-y-3 border-t border-[#256EFF]/20 pt-6">
+                        <div className="flex items-center gap-2">
+                            <ImageIcon className="w-5 h-5 text-[#07BEB8]" />
+                            <FormLabel className="text-[#102542] text-base font-semibold">
+                                Imágenes del destino
+                            </FormLabel>
+                        </div>
+                        <ImageUploader
+                            destinationId={savedDestinationId}
+                            existingImages={images}
+                            onImagesChange={setImages}
+                        />
+                    </div>
+                )}
+
+                <div className="flex gap-3 pt-4">
+                    {!savedDestinationId ? (
+                        <Button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="bg-[#256EFF] hover:bg-[#1a5ce6] text-white flex-1"
+                        >
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Guardando...
+                                </>
+                            ) : (
+                                <>
+                                    <Save className="mr-2 h-4 w-4" />
+                                    Guardar destino
+                                </>
+                            )}
+                        </Button>
+                    ) : (
+                        <Button
+                            type="button"
+                            onClick={handleFinish}
+                            className="bg-[#07BEB8] hover:bg-[#06a59f] text-white flex-1"
+                        >
+                            Finalizar y crear otro destino
+                        </Button>
+                    )}
+                </div>
+            </form>
+        </Form>
+    );
+}
