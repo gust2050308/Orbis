@@ -6,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DestinationForm } from './DestinationForm';
 import { DestinationList } from './DestinationList';
 import GoogleMapsProvider from './GoogleMapsProvider';
+import DestinationProvider from '../DestinationContext';
+import DestinationDialog from './DestinationDialog';
 
 export default function DestinationsPage() {
     const [activeTab, setActiveTab] = useState('create');
@@ -20,9 +22,26 @@ export default function DestinationsPage() {
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#F7F5FB] to-[#e8e4f5] py-8 px-4">
             <GoogleMapsProvider>  {/* ← AGREGAR */}
+                <DestinationProvider>
+                    <div className="max-w-6xl mx-auto">
+                        <DestinationDialog/>
+                        
+                        <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 border border-[#256EFF]/20">
+                            <h2 className="text-2xl font-bold text-[#102542] mb-6">
+                                Destinos registrados
+                            </h2>
+                            <DestinationList refreshTrigger={refreshTrigger} />
+                        </div>
 
-                <div className="max-w-6xl mx-auto">
-                    {/* Header */}
+
+                    </div>
+                </DestinationProvider>
+            </GoogleMapsProvider>  {/* ← AGREGAR */}
+        </div>
+    );
+}
+
+{/* Header 
                     <div className="mb-8 text-center">
                         <div className="inline-flex items-center justify-center w-16 h-16 bg-[#256EFF] rounded-full mb-4">
                             <MapPin className="w-8 h-8 text-white" />
@@ -35,7 +54,8 @@ export default function DestinationsPage() {
                         </p>
                     </div>
 
-                    {/* Tabs */}
+                    {/* Tabs *
+
                     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
                         <TabsList className="grid w-full max-w-md mx-auto grid-cols-2 mb-8 bg-white border border-[#256EFF]/20">
                             <TabsTrigger
@@ -61,16 +81,6 @@ export default function DestinationsPage() {
                         </TabsContent>
 
                         <TabsContent value="list" className="mt-0">
-                            <div className="bg-white rounded-lg shadow-lg p-6 md:p-8 border border-[#256EFF]/20">
-                                <h2 className="text-2xl font-bold text-[#102542] mb-6">
-                                    Destinos registrados
-                                </h2>
-                                <DestinationList refreshTrigger={refreshTrigger} />
                             </div>
                         </TabsContent>
-                    </Tabs>
-                </div>
-            </GoogleMapsProvider>  {/* ← AGREGAR */}
-        </div>
-    );
-}
+                    </Tabs>*/}

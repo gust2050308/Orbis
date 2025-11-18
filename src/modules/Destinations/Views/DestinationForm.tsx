@@ -24,6 +24,10 @@ import { DestinationMap } from './DestinationMap';
 import { ImageUploader } from './Images/ImageUploader';
 import { DestinationImage } from '../types/TypesImages';
 import { destinationImagesService } from '../Services/destinationImagesService';
+import { useContext } from 'react';
+import { DestinationContext } from '../DestinationContext';
+import { toast } from 'sonner';
+import { Destination } from '../types/TypesDestinations';
 
 const defaultCenter = {
     lat: 19.4326,
@@ -40,7 +44,8 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [images, setImages] = useState<DestinationImage[]>([]);
     const [savedDestinationId, setSavedDestinationId] = useState<number | undefined>(destinationId);
-    const { toast } = useToast();
+    const { refreshData, idDestination } = useContext(DestinationContext);
+    const [destination, setDestination] = useState<Destination | null>(null);
 
     const form = useForm<DestinationFormData>({
         resolver: zodResolver(destinationSchema),
@@ -69,29 +74,51 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
         form.setValue('latitude', lat);
         form.setValue('longitude', lng);
     };
+    useEffect(() => {
+        if (!idDestination) {
+            form.reset();
+            setSavedDestinationId(undefined);
+            setImages([]);
+            return;
+        }
+
+        (async () => {
+            try {
+                const fetched = await destinationService.getById(idDestination);
+                form.reset(fetched);
+                setSavedDestinationId(idDestination);
+
+                const imgs = await destinationImagesService.getImagesByDestination(idDestination);
+                setImages(imgs);
+            } catch (err) {
+                toast.error("No se pudo cargar el destino.");
+                console.error(err);
+            }
+        })();
+
+    }, [idDestination]);
 
     const onSubmit = async (data: DestinationFormData) => {
         setIsSubmitting(true);
+
         try {
-            const destination = await destinationService.create(data);
-            setSavedDestinationId(destination.id); // Guardar ID para permitir subir imágenes
+            let dest: Destination;
 
-            toast({
-                title: '✅ Destino creado',
-                description: `${data.name} se ha guardado correctamente. Ahora puedes agregar imágenes.`,
-                style: { backgroundColor: '#07BEB8', color: '#F7F5FB' },
-            });
+            if (savedDestinationId) {
+                // --- EDITAR ---
+                dest = await destinationService.update(savedDestinationId, data);
+                toast.success("Destino actualizado correctamente.");
+            } else {
+                // --- CREAR ---
+                dest = await destinationService.create(data);
+                toast.success("Destino creado correctamente. Ahora puedes agregar imágenes.");
+            }
 
-            // NO resetear el form para permitir subir imágenes
-            // form.reset();
-            // onSuccess?.();
-        } catch (error) {
-            console.error('Error al guardar destino:', error);
-            toast({
-                title: '❌ Error',
-                description: 'No se pudo guardar el destino. Intenta de nuevo.',
-                variant: 'destructive',
-            });
+            setSavedDestinationId(dest.id);
+
+        } catch (err) {
+            toast.error("Error al guardar el destino.");
+            console.error(err);
         } finally {
             setIsSubmitting(false);
         }
@@ -101,6 +128,7 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
         form.reset();
         setSavedDestinationId(undefined);
         setImages([]);
+        refreshData();
         onSuccess?.();
     };
 
@@ -276,7 +304,10 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
                     ) : (
                         <Button
                             type="button"
-                            onClick={handleFinish}
+                            onClick={() => {
+                                handleFinish();
+                                refreshData();
+                            }}
                             className="bg-[#07BEB8] hover:bg-[#06a59f] text-white flex-1"
                         >
                             Finalizar y crear otro destino

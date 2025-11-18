@@ -1,11 +1,12 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Upload, X, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { destinationImagesService } from '../../Services/destinationImagesService';
 import { DestinationImage, MAX_IMAGES_PER_DESTINATION } from '../../types/TypesImages';
 import { toast } from 'sonner';
+import { set } from 'zod';
 
 type ImageUploaderProps = {
     destinationId: number;
@@ -19,8 +20,13 @@ export function ImageUploader({
     onImagesChange
 }: ImageUploaderProps) {
     const [images, setImages] = useState<DestinationImage[]>(existingImages);
-    const [uploading, setUploading] = useState(false);
+     const [uploading, setUploading] = useState(false);
     const [previews, setPreviews] = useState<string[]>([]);
+
+    useEffect(() => {
+        setImages(existingImages);
+    }, [existingImages]);
+   
 
     const handleFileSelect = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
