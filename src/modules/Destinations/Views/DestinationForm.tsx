@@ -29,6 +29,7 @@ import { DestinationContext } from '../DestinationContext';
 import { toast } from 'sonner';
 import { Destination } from '../types/TypesDestinations';
 import { set } from 'zod';
+import { Span } from 'next/dist/trace';
 
 const defaultCenter = {
     lat: 19.4326,
@@ -45,7 +46,7 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [images, setImages] = useState<DestinationImage[]>([]);
     const [savedDestinationId, setSavedDestinationId] = useState<number | undefined>(destinationId);
-    const { refreshData, idDestination, setOpen } = useContext(DestinationContext);
+    const { refreshData, idDestination, setOpen, setIdDestination } = useContext(DestinationContext);
     const [isEditMode, setIsEditMode] = useState(false);
 
     const form = useForm<DestinationFormData>({
@@ -319,28 +320,62 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
 
                 <div className="w-full flex justify-center gap-4 py-4">
                     <div className="flex w-full justify-center">
-                        <Button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="bg-[#256EFF] hover:bg-[#1a5ce6] text-white w-1/2"
-                            onClick={() => {
-                                onSubmit(form.getValues());
-                                setOpen(false);
-                                refreshData();
-                            }}
-                        >
-                            {isSubmitting ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Guardando...
-                                </>
-                            ) : (
-                                <>
-                                    <Save className="mr-2 h-4 w-4" />
-                                    {isEditMode ? 'Actualizar destino' : 'Guardar destino'}
-                                </>
-                            )}
-                        </Button>
+
+                        {isEditMode ? (
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="bg-[#256EFF] hover:bg-[#1a5ce6] text-white w-1/2"
+                                onClick={() => {
+                                    onSubmit(form.getValues());
+                                    setOpen(false);
+                                    refreshData();
+                                    setIdDestination(0);
+                                }}
+                            >
+                                {
+                                    isSubmitting ?
+                                        (
+                                            <span className='flex flex-row items-center'>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Actualizando...
+                                            </span>
+                                        )
+                                        :
+                                        (
+                                            <span className='flex flex-row items-center'>
+                                                <Save className="mr-2 h-4 w-4" />
+                                                Actualizar
+                                            </span>
+                                        )
+                                }
+                                </Button>
+                        ) : (
+                            <Button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="bg-[#256EFF] hover:bg-[#1a5ce6] text-white w-1/2"
+                                onClick={() => {
+                                    onSubmit(form.getValues());
+                                }}
+                            >{
+                                    isSubmitting ?
+                                        (
+                                            <span className='flex flex-row items-center'>
+                                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                                Guardando...
+                                            </span>
+                                        )
+                                        :
+                                        (
+                                            <span className='flex flex-row items-center'>
+                                                <Save className="mr-2 h-4 w-4" />
+                                                Guardar
+                                            </span>
+                                        )
+                                }
+                            </Button>
+                        )}
 
                         {(savedDestinationId && !isEditMode) && (
                             <Button
