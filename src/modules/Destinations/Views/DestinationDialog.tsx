@@ -13,10 +13,18 @@ import { DestinationForm } from './DestinationForm';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export default function DestinationDialog() {
-    const { open, setOpen } = useContext(DestinationContext);
+    const { open, setOpen, setIdDestination } = useContext(DestinationContext);
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
+        <Dialog
+            open={open}
+            onOpenChange={(isOpen) => {
+                setOpen(isOpen);
+                if (!isOpen) {
+                    setIdDestination(0);
+                }
+            }}
+        >
             <DialogContent className="max-w-6xl w-[95vw] max-h-[90vh] overflow-y-auto p-0 no-scrollbar">
                 {/* Header fijo */}
                 <DialogHeader className="px-6 py-4">

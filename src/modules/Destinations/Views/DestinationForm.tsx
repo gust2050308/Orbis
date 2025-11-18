@@ -28,6 +28,7 @@ import { useContext } from 'react';
 import { DestinationContext } from '../DestinationContext';
 import { toast } from 'sonner';
 import { Destination } from '../types/TypesDestinations';
+import { set } from 'zod';
 
 const defaultCenter = {
     lat: 19.4326,
@@ -37,15 +38,15 @@ const defaultCenter = {
 type DestinationFormProps = {
     onSuccess?: () => void;
     initialData?: DestinationFormData;
-    destinationId?: number; // Para editar y cargar imágenes existentes
+    destinationId?: number;
 };
 
 export function DestinationForm({ onSuccess, initialData, destinationId }: DestinationFormProps) {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [images, setImages] = useState<DestinationImage[]>([]);
     const [savedDestinationId, setSavedDestinationId] = useState<number | undefined>(destinationId);
-    const { refreshData, idDestination } = useContext(DestinationContext);
-    const [destination, setDestination] = useState<Destination | null>(null);
+    const { refreshData, idDestination, setOpen } = useContext(DestinationContext);
+    const [isEditMode, setIsEditMode] = useState(false);
 
     const form = useForm<DestinationFormData>({
         resolver: zodResolver(destinationSchema),
@@ -60,76 +61,110 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
         },
     });
 
-    // Cargar imágenes existentes si es edición
-    useEffect(() => {
-        if (savedDestinationId) {
-            destinationImagesService
-                .getImagesByDestination(savedDestinationId)
-                .then(setImages)
-                .catch((err) => console.error('Error al cargar imágenes:', err));
-        }
-    }, [savedDestinationId]);
-
-    const handleLocationChange = (lat: number, lng: number) => {
-        form.setValue('latitude', lat);
-        form.setValue('longitude', lng);
-    };
+    // Cargar destino cuando idDestination cambia
     useEffect(() => {
         if (!idDestination) {
-            form.reset();
+            // Resetear formulario para crear nuevo
+            form.reset({
+                name: '',
+                country: '',
+                short_description: '',
+                description: '',
+                latitude: defaultCenter.lat,
+                longitude: defaultCenter.lng,
+                is_active: true,
+            });
             setSavedDestinationId(undefined);
             setImages([]);
+            setIsEditMode(false);
             return;
         }
 
+        // Cargar destino existente
         (async () => {
             try {
                 const fetched = await destinationService.getById(idDestination);
-                form.reset(fetched);
+
+                // IMPORTANTE: Usar reset con todos los campos
+                form.reset({
+                    name: fetched.name,
+                    country: fetched.country || '',
+                    short_description: fetched.short_description || '',
+                    description: fetched.description || '',
+                    latitude: fetched.latitude,
+                    longitude: fetched.longitude,
+                    is_active: fetched.is_active,
+                });
+
                 setSavedDestinationId(idDestination);
+                setIsEditMode(true);
 
                 const imgs = await destinationImagesService.getImagesByDestination(idDestination);
                 setImages(imgs);
+
+                console.log('Destino cargado para edición:', fetched);
             } catch (err) {
                 toast.error("No se pudo cargar el destino.");
                 console.error(err);
             }
         })();
-
     }, [idDestination]);
+
+    const handleLocationChange = (lat: number, lng: number) => {
+        form.setValue('latitude', lat);
+        form.setValue('longitude', lng);
+    };
 
     const onSubmit = async (data: DestinationFormData) => {
         setIsSubmitting(true);
 
         try {
+            console.log('Enviando datos:', data);
+            console.log('savedDestinationId:', savedDestinationId);
+            console.log('isEditMode:', isEditMode);
+
             let dest: Destination;
 
-            if (savedDestinationId) {
-                // --- EDITAR ---
+            if (savedDestinationId && isEditMode) {
+                // EDITAR
+                console.log('Actualizando destino ID:', savedDestinationId);
                 dest = await destinationService.update(savedDestinationId, data);
                 toast.success("Destino actualizado correctamente.");
             } else {
-                // --- CREAR ---
+                // CREAR
+                console.log('Creando nuevo destino');
                 dest = await destinationService.create(data);
+                setSavedDestinationId(dest.id);
+                setIsEditMode(true);
                 toast.success("Destino creado correctamente. Ahora puedes agregar imágenes.");
             }
 
-            setSavedDestinationId(dest.id);
+            console.log('Resultado:', dest);
 
         } catch (err) {
             toast.error("Error al guardar el destino.");
-            console.error(err);
+            console.error('Error completo:', err);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const handleFinish = () => {
-        form.reset();
+        form.reset({
+            name: '',
+            country: '',
+            short_description: '',
+            description: '',
+            latitude: defaultCenter.lat,
+            longitude: defaultCenter.lng,
+            is_active: true,
+        });
         setSavedDestinationId(undefined);
         setImages([]);
+        setIsEditMode(false);
         refreshData();
         onSuccess?.();
+        setOpen(false);
     };
 
     const latitude = form.watch('latitude');
@@ -265,7 +300,7 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
                     )}
                 />
 
-                {/* Sección de imágenes - Solo si ya se guardó el destino */}
+                {/* Sección de imágenes */}
                 {savedDestinationId && (
                     <div className="space-y-3 border-t border-[#256EFF]/20 pt-6">
                         <div className="flex items-center gap-2">
@@ -282,12 +317,17 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
                     </div>
                 )}
 
-                <div className="flex gap-3 pt-4">
-                    {!savedDestinationId ? (
+                <div className="w-full flex justify-center gap-4 py-4">
+                    <div className="flex w-full justify-center">
                         <Button
                             type="submit"
                             disabled={isSubmitting}
-                            className="bg-[#256EFF] hover:bg-[#1a5ce6] text-white flex-1"
+                            className="bg-[#256EFF] hover:bg-[#1a5ce6] text-white w-1/2"
+                            onClick={() => {
+                                onSubmit(form.getValues());
+                                setOpen(false);
+                                refreshData();
+                            }}
                         >
                             {isSubmitting ? (
                                 <>
@@ -297,22 +337,21 @@ export function DestinationForm({ onSuccess, initialData, destinationId }: Desti
                             ) : (
                                 <>
                                     <Save className="mr-2 h-4 w-4" />
-                                    Guardar destino
+                                    {isEditMode ? 'Actualizar destino' : 'Guardar destino'}
                                 </>
                             )}
                         </Button>
-                    ) : (
-                        <Button
-                            type="button"
-                            onClick={() => {
-                                handleFinish();
-                                refreshData();
-                            }}
-                            className="bg-[#07BEB8] hover:bg-[#06a59f] text-white flex-1"
-                        >
-                            Finalizar y crear otro destino
-                        </Button>
-                    )}
+
+                        {(savedDestinationId && !isEditMode) && (
+                            <Button
+                                type="button"
+                                onClick={handleFinish}
+                                className="bg-[#07BEB8] hover:bg-[#06a59f] text-white w-1/2"
+                            >
+                                Finalizar y crear otro destino
+                            </Button>
+                        )}
+                    </div>
                 </div>
             </form>
         </Form>
