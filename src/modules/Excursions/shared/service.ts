@@ -45,7 +45,51 @@ export async function getExcursionsById(id: string) {
     return data;
 }
 
-export async function deleteExcursion() {
+export async function deleteExcursion(id:number) {
+    const supabase = await createClient();
 
+    if(!id){
+        throw new Error('ID de excursion es requerido');
+    }
+
+    const {data, error} = await supabase
+        .from('excursions')
+        .update({status: 'deleted'})
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error al eliminar la excursion:', error);
+        throw error;
+    }
+
+    console.log('Excursion eliminada (status actualizado):', data);
+    return data;
 }
+
+export async function updateExcursion(id:number, excursion: Partial<Excursion>) {
+    const supabase = await createClient();
+
+    if(!id){
+        throw new Error('ID de excursion es requerido');
+    }
+
+    const {data, error} = await supabase
+        .from('excursions')
+        .update(excursion)
+        .eq('id', id)
+        .select()
+        .single();
+
+    if (error) {
+        console.error('Error al actualizar la excursion:', error);
+        throw error;
+    }
+
+    console.log('Excursion actualizada:', data);
+    return data;
+}
+
+
 
