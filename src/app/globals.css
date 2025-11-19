@@ -129,3 +129,16 @@
   -ms-overflow-style: none;  /* IE y Edge */
   scrollbar-width: none;     /* Firefox */
 }
+
+
+/* Personalización del sidebar */
+[data-sidebar] {
+  --sidebar-background: #ffffff;
+  --sidebar-foreground: #102542;
+  --sidebar-primary: #256EFF;
+  --sidebar-primary-foreground: #F7F5FB;
+  --sidebar-accent: #07BEB8;
+  --sidebar-accent-foreground: #F7F5FB;
+  --sidebar-border: #256EFF20;
+  --sidebar-ring: #256EFF;
+}
