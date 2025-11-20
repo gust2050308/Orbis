@@ -68,10 +68,10 @@ export default function ModalExcursionCreate() {
 
             // Llamar al service
             const result = await createExcurtions(excursionData)
-            
+
             console.log('Excursión creada:', result)
             setSuccess(true)
-            
+
             // Limpiar formulario
             setFormData({
                 title: '',
