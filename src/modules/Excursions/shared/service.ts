@@ -45,16 +45,16 @@ export async function getExcursionsById(id: string) {
     return data;
 }
 
-export async function deleteExcursion(id:number) {
+export async function deleteExcursion(id: number) {
     const supabase = await createClient();
 
-    if(!id){
+    if (!id) {
         throw new Error('ID de excursion es requerido');
     }
 
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('excursions')
-        .update({status: 'deleted'})
+        .update({ status: 'deleted' })
         .eq('id', id)
         .select()
         .single();
@@ -68,14 +68,14 @@ export async function deleteExcursion(id:number) {
     return data;
 }
 
-export async function updateExcursion(id:number, excursion: Partial<Excursion>) {
+export async function updateExcursion(id: number, excursion: Partial<Excursion>) {
     const supabase = await createClient();
 
-    if(!id){
+    if (!id) {
         throw new Error('ID de excursion es requerido');
     }
 
-    const {data, error} = await supabase
+    const { data, error } = await supabase
         .from('excursions')
         .update(excursion)
         .eq('id', id)
@@ -89,6 +89,17 @@ export async function updateExcursion(id:number, excursion: Partial<Excursion>) 
 
     console.log('Excursion actualizada:', data);
     return data;
+}
+
+// Acción para actualizar excursión (usado en Modal)
+export async function updateExcursionAction(id: number, excursion: Partial<Excursion>) {
+    try {
+        const result = await updateExcursion(id, excursion)
+        return { success: true, data: result }
+    } catch (error) {
+        const message = error instanceof Error ? error.message : 'Error al actualizar'
+        return { success: false, error: message }
+    }
 }
 
 

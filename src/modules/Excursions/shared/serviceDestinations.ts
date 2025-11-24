@@ -1,6 +1,19 @@
 'use server'
 import { createClient } from "@/lib/Supabase/server"
 
+export type Destination = {
+    id: number
+    name: string
+    country?: string | null
+    description?: string | null
+    short_description?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    is_active?: boolean | null
+    created_at?: string | null
+    updated_at?: string | null
+}
+
 export async function getAllDestinations() {
     const supabase = await createClient();
     const { data, error } = await supabase

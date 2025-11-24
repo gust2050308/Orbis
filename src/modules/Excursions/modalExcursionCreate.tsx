@@ -14,9 +14,9 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { createExcurtions } from './shared/service'
 import { getAllDestinations } from './shared/serviceDestinations'
+import { addDestinationsToExcursion } from './shared/serviceExcursionsDestinations'
 import type { Excursion } from './shared/dtoExcursion'
-import type { Destinations } from './shared/dtoDestinations'
-import DatatableExcursionDestinations from './datatableExcrusionDestinations'
+import type { Destination } from './shared/serviceDestinations'
 import { useRouter } from 'next/navigation'
 
 export default function ModalExcursionCreate() {
@@ -26,7 +26,8 @@ export default function ModalExcursionCreate() {
     const [loadingDestinations, setLoadingDestinations] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
-    const [destinations, setDestinations] = useState<Destinations[]>([])
+    const [destinations, setDestinations] = useState<Destination[]>([])
+    const [selectedDestinations, setSelectedDestinations] = useState<number[]>([])
 
     const [formData, setFormData] = useState({
         title: '',
@@ -39,7 +40,6 @@ export default function ModalExcursionCreate() {
         available_seats: '',
     })
 
-    // Cargar destinos cuando se abre el modal
     useEffect(() => {
         if (open) {
             loadDestinations()
@@ -51,6 +51,7 @@ export default function ModalExcursionCreate() {
         try {
             const data = await getAllDestinations()
             setDestinations(data || [])
+            setSelectedDestinations([])
         } catch (err) {
             console.error('Error loading destinations:', err)
             setDestinations([])
@@ -67,6 +68,16 @@ export default function ModalExcursionCreate() {
         }))
     }
 
+    const handleDestinationSelect = (destinationId: number) => {
+        setSelectedDestinations(prev => {
+            if (prev.includes(destinationId)) {
+                return prev.filter(id => id !== destinationId)
+            } else {
+                return [...prev, destinationId]
+            }
+        })
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)
@@ -77,8 +88,14 @@ export default function ModalExcursionCreate() {
             return
         }
 
+        if (selectedDestinations.length === 0) {
+            setError('Debes seleccionar al menos un destino')
+            return
+        }
+
         setLoading(true)
         try {
+            // 1. Crear la excursión
             const excursionData: Partial<Excursion> = {
                 title: formData.title.trim(),
                 description: formData.description.trim() || undefined,
@@ -90,11 +107,21 @@ export default function ModalExcursionCreate() {
                 available_seats: formData.available_seats ? Number(formData.available_seats) : null,
             }
 
-            const result = await createExcurtions(excursionData)
-            console.log('Excursión creada:', result)
+            const excursion = await createExcurtions(excursionData)
+            
+            if (!excursion?.id) {
+                throw new Error('No se obtuvo ID de la excursión')
+            }
+
+            // 2. Agregar destinos
+            await addDestinationsToExcursion(
+                excursion.id,
+                selectedDestinations
+            )
+
             setSuccess(true)
 
-            // Limpiar formulario
+            // Limpiar
             setFormData({
                 title: '',
                 description: '',
@@ -105,16 +132,16 @@ export default function ModalExcursionCreate() {
                 end_date: '',
                 available_seats: '',
             })
+            setSelectedDestinations([])
 
             setTimeout(() => {
                 setOpen(false)
                 setSuccess(false)
                 router.refresh()
-            }, 1000)
+            }, 1500)
 
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : 'Error desconocido'
-            console.error('Error al crear excursión:', err)
             setError(`Error: ${errorMsg}`)
         } finally {
             setLoading(false)
@@ -185,11 +212,61 @@ export default function ModalExcursionCreate() {
 
                     {/* Destinos */}
                     <div className="space-y-4 border-t pt-6">
-                        <h3 className="font-semibold text-lg">Destinos de la Excursión</h3>
-                        <DatatableExcursionDestinations 
-                            destinations={destinations}
-                            loading={loadingDestinations}
-                        />
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="font-semibold text-lg">Destinos de la Excursión *</h3>
+                                <p className="text-sm text-gray-600">
+                                    {selectedDestinations.length} destino(s) seleccionado(s)
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {loadingDestinations ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                                Cargando destinos...
+                            </div>
+                        ) : destinations.length === 0 ? (
+                            <div className="text-center py-8 text-muted-foreground">
+                                No hay destinos disponibles
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                {destinations.map((destination) => (
+                                    <div
+                                        key={destination.id}
+                                        className={`flex items-start space-x-3 p-3 border rounded-lg cursor-pointer transition ${
+                                            selectedDestinations.includes(destination.id)
+                                                ? 'bg-blue-50 border-blue-300'
+                                                : 'hover:bg-gray-50'
+                                        }`}
+                                        onClick={() => handleDestinationSelect(destination.id)}
+                                    >
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedDestinations.includes(destination.id)}
+                                            onChange={() => {}}
+                                            disabled={loading}
+                                            className="mt-1 cursor-pointer w-4 h-4"
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-semibold text-sm">
+                                                {destination.name}
+                                            </p>
+                                            {destination.country && (
+                                                <p className="text-xs text-gray-600">
+                                                    {destination.country}
+                                                </p>
+                                            )}
+                                            {destination.short_description && (
+                                                <p className="text-xs text-gray-500 line-clamp-2 mt-1">
+                                                    {destination.short_description}
+                                                </p>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
                     {/* Información adicional */}
@@ -267,13 +344,13 @@ export default function ModalExcursionCreate() {
 
                     {/* Mensajes */}
                     {error && (
-                        <div className="p-3 bg-red-100 text-red-700 rounded text-sm">
-                            {error}
+                        <div className="p-3 bg-red-100 text-red-700 rounded text-sm border border-red-300">
+                            ❌ {error}
                         </div>
                     )}
                     {success && (
-                        <div className="p-3 bg-green-100 text-green-700 rounded text-sm">
-                            ✓ Excursión creada exitosamente
+                        <div className="p-3 bg-green-100 text-green-700 rounded text-sm border border-green-300">
+                            ✓ Excursión creada exitosamente con {selectedDestinations.length} destino(s)
                         </div>
                     )}
 
@@ -287,7 +364,10 @@ export default function ModalExcursionCreate() {
                         >
                             Cancelar
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button 
+                            type="submit" 
+                            disabled={loading || selectedDestinations.length === 0}
+                        >
                             {loading ? 'Guardando...' : 'Guardar Excursión'}
                         </Button>
                     </div>
