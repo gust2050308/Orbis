@@ -9,18 +9,21 @@ import type { AppProviderProps } from "../Types/AppTypes";
 ==================*/
 
 //context creation using the defined type 
+
 export const AppContext = createContext<AppProviderProps>({
-    //default values for the context properties
     theme: "light",
     setTheme: () => {},
+    isAuthUser: false,
+    setIsAuthUser: () => {},
 });
 
 //Definition of the context provider component
 const AppProvider: FC<{children: ReactNode}> = ({children}) => {
     const [theme, setTheme] = useState<string>("light");
+    const [isAuthUser, setIsAuthUser] = useState<boolean>(false);
     //returning the provider with the context values   
     return (
-        <AppContext.Provider value={{theme, setTheme}}>
+        <AppContext.Provider value={{theme, setTheme, isAuthUser, setIsAuthUser}}>
             {children}
         </AppContext.Provider>
     );

@@ -1,6 +1,5 @@
 import Image from "next/image";
 import AuthView from './Views/auth/AuthView'
-import DestinationForm from './maps/CrearDestinos'
 import CheckoutButton from '././maps/CheckoutButton';
 
 

@@ -3,7 +3,7 @@ import DestinationsPage from '@/modules/Destinations/Views/DestinationsPage'
 
 export default function page() {
   return (
-    <div>
+    <div className=''>
         <DestinationsPage />
     </div>
   )
