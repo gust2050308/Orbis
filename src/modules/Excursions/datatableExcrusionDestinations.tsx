@@ -161,16 +161,28 @@ export const columns: ColumnDef<Destinations>[] = [
 interface DatatableExcursionDestinationsProps {
   destinations?: Destinations[]
   loading?: boolean
+  onSelectionChange?: (selectedIds: number[]) => void
 }
 
 export default function DatatableExcursionDestinations({ 
   destinations = [],
-  loading = false
+  loading = false,
+  onSelectionChange
 }: DatatableExcursionDestinationsProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+
+  // Notificar cambios de selección al componente padre
+  React.useEffect(() => {
+    const selectedRows = Object.entries(rowSelection)
+      .filter(([, isSelected]) => isSelected)
+      .map(([index]) => destinations[parseInt(index)]?.id)
+      .filter((id) => id !== undefined) as number[]
+    
+    onSelectionChange?.(selectedRows)
+  }, [rowSelection, destinations, onSelectionChange])
 
   const table = useReactTable({
     data: destinations,

@@ -18,6 +18,7 @@ import { addDestinationsToExcursion } from './shared/serviceExcursionsDestinatio
 import type { Excursion } from './shared/dtoExcursion'
 import type { Destination } from './shared/serviceDestinations'
 import { useRouter } from 'next/navigation'
+import DatatableExcursionDestinations from './datatableExcrusionDestinations'
 
 export default function ModalExcursionCreate() {
     const router = useRouter()
@@ -220,53 +221,11 @@ export default function ModalExcursionCreate() {
                                 </p>
                             </div>
                         </div>
-                        
-                        {loadingDestinations ? (
-                            <div className="text-center py-8 text-muted-foreground">
-                                Cargando destinos...
-                            </div>
-                        ) : destinations.length === 0 ? (
-                            <div className="text-center py-8 text-muted-foreground">
-                                No hay destinos disponibles
-                            </div>
-                        ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                {destinations.map((destination) => (
-                                    <div
-                                        key={destination.id}
-                                        className={`flex items-start space-x-3 p-3 border rounded-lg cursor-pointer transition ${
-                                            selectedDestinations.includes(destination.id)
-                                                ? 'bg-blue-50 border-blue-300'
-                                                : 'hover:bg-gray-50'
-                                        }`}
-                                        onClick={() => handleDestinationSelect(destination.id)}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedDestinations.includes(destination.id)}
-                                            onChange={() => {}}
-                                            disabled={loading}
-                                            className="mt-1 cursor-pointer w-4 h-4"
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <p className="font-semibold text-sm">
-                                                {destination.name}
-                                            </p>
-                                            {destination.country && (
-                                                <p className="text-xs text-gray-600">
-                                                    {destination.country}
-                                                </p>
-                                            )}
-                                            {destination.short_description && (
-                                                <p className="text-xs text-gray-500 line-clamp-2 mt-1">
-                                                    {destination.short_description}
-                                                </p>
-                                            )}
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
+                        <DatatableExcursionDestinations 
+                            destinations={destinations}
+                            loading={loadingDestinations}
+                            onSelectionChange={setSelectedDestinations}
+                        />
                     </div>
 
                     {/* Información adicional */}
