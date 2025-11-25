@@ -11,9 +11,30 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { updateExcursion } from './shared/actions'
+import { getExcursionDestination, updateExcursionDestinationsOrder, removeDestinationFromExcursion } from './shared/serviceExcursionsDestinations'
 import type { Excursion } from './shared/dtoExcursion'
+import DatatableExcursionDestinationsUpdate from './datatableExcrusionDestinationsUpdate'
+import { MapPin } from 'lucide-react'
+
+interface DatatableHandle {
+    getChanges: () => { destinationOrders: Array<{ destinationId: number; orderIndex: number }>; deletedDestinations: number[] }
+    resetChanges: () => void
+}
+
+interface DestinationRow {
+    id: number
+    name: string
+    country?: string | null
+    description?: string | null
+    short_description?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    is_active?: boolean | null
+    order_index?: number
+    excursion_destination_id?: number
+}
 
 interface ModalExcursionUpdateProps {
     open: boolean
@@ -31,6 +52,8 @@ export default function ModalExcursionUpdate({
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+    const [destinations, setDestinations] = useState<DestinationRow[]>([])
+    const [loadingDestinations, setLoadingDestinations] = useState(false)
 
     const [formData, setFormData] = useState({
         title: '',
@@ -42,6 +65,38 @@ export default function ModalExcursionUpdate({
         end_date: '',
         available_seats: '',
     })
+    
+    const datatableRef = useRef<DatatableHandle>(null)
+
+    // Cargar destinos cuando se abre el modal
+    useEffect(() => {
+        if (open && excursion?.id) {
+            const loadDestinations = async () => {
+                try {
+                    setLoadingDestinations(true)
+                    const data = await getExcursionDestination(excursion.id)
+                    
+                    // Transformar datos: extraer destinos anidados
+                    const destinationsList = data
+                        .map((item) => ({
+                            ...item.destinations,
+                            order_index: item.order_index,
+                            excursion_destination_id: item.id
+                        }))
+                        .filter((dest) => dest) as unknown as DestinationRow[]
+                    
+                    setDestinations(destinationsList)
+                } catch (err) {
+                    console.error('Error al cargar destinos:', err)
+                    setDestinations([])
+                } finally {
+                    setLoadingDestinations(false)
+                }
+            }
+            
+            loadDestinations()
+        }
+    }, [open, excursion?.id])
 
     // Llenar el formulario cuando cambia la excursión seleccionada
     useEffect(() => {
@@ -102,6 +157,41 @@ export default function ModalExcursionUpdate({
             if (!result.success) {
                 setError(result.error || 'Error al actualizar la excursión')
                 return
+            }
+
+            // Obtener cambios del datatable
+            const changes = datatableRef.current?.getChanges?.()
+            
+            // Aplicar cambios de destinos si existen
+            if (changes) {
+                // Actualizar orden de destinos reordenados
+                if (changes.destinationOrders && changes.destinationOrders.length > 0) {
+                    try {
+                        await updateExcursionDestinationsOrder(
+                            excursion.id,
+                            changes.destinationOrders
+                        )
+                    } catch (err) {
+                        throw new Error(`Error al actualizar orden de destinos: ${err instanceof Error ? err.message : 'Error desconocido'}`)
+                    }
+                }
+                
+                // Eliminar destinos deletados
+                if (changes.deletedDestinations && changes.deletedDestinations.length > 0) {
+                    for (const destinationId of changes.deletedDestinations) {
+                        try {
+                            await removeDestinationFromExcursion(
+                                excursion.id,
+                                destinationId
+                            )
+                        } catch (err) {
+                            throw new Error(`Error al eliminar destino: ${err instanceof Error ? err.message : 'Error desconocido'}`)
+                        }
+                    }
+                }
+                
+                // Resetear cambios en el datatable después de guardar
+                datatableRef.current?.resetChanges?.()
             }
 
             console.log('Excursión actualizada:', result.data)
@@ -205,6 +295,45 @@ export default function ModalExcursionUpdate({
                             disabled={loading}
                         />
                     </div>
+
+                    {/* Destinos de la Excursión */}
+                    {excursion && (
+                        <div className="border-t pt-4">
+                            <div className="flex items-center gap-2 mb-4">
+                                <MapPin className="h-5 w-5 text-teal-600" />
+                                <span className="font-semibold text-gray-700">Destinos de la Excursión</span>
+                            </div>
+                            <DatatableExcursionDestinationsUpdate 
+                                ref={datatableRef}
+                                excursionId={excursion.id} 
+                                destinations={destinations}
+                                loading={loadingDestinations}
+                                onUpdate={() => {
+                                    // Recargar destinos después de actualizar
+                                    if (excursion?.id) {
+                                        const loadDestinations = async () => {
+                                            try {
+                                                setLoadingDestinations(true)
+                                                const data = await getExcursionDestination(excursion.id)
+                                                const destinationsList = data
+                                                    .map((item) => ({
+                                                        ...item.destinations,
+                                                        order_index: item.order_index,
+                                                        excursion_destination_id: item.id
+                                                    }))
+                                                    .filter((dest) => dest) as unknown as DestinationRow[]
+                                                setDestinations(destinationsList)
+                                            } finally {
+                                                setLoadingDestinations(false)
+                                            }
+                                        }
+                                        loadDestinations()
+                                    }
+                                }}
+                            />
+                        </div>
+                    )}
+
 
                     {/* Fechas */}
                     <div className="grid grid-cols-2 gap-2">

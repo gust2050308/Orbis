@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, DollarSign, Users, Clock, MapPin, Info } from 'lucide-react'
 import type { Excursion } from './shared/dtoExcursion'
+import DatatableExcursionDestinationsView from './datatableExcrusionDestinationsView'
 
 interface ModalExcursionViewProps {
     open: boolean
@@ -143,6 +144,15 @@ export default function modalExcursionView({open, onOpenChange, excursion, onEdi
                                 </p>
                             </div>
                         </div>
+                    </div>
+
+                    {/* Destinos de la Excursión */}
+                    <div className="border-t pt-4">
+                        <div className="flex items-center gap-2 mb-4">
+                            <MapPin className="h-5 w-5 text-teal-600" />
+                            <span className="font-semibold text-gray-700">Destinos de la Excursión</span>
+                        </div>
+                        <DatatableExcursionDestinationsView excursionId={excursion.id} />
                     </div>
 
                     {/* Información de auditoría */}

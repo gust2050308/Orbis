@@ -69,16 +69,6 @@ export default function ModalExcursionCreate() {
         }))
     }
 
-    const handleDestinationSelect = (destinationId: number) => {
-        setSelectedDestinations(prev => {
-            if (prev.includes(destinationId)) {
-                return prev.filter(id => id !== destinationId)
-            } else {
-                return [...prev, destinationId]
-            }
-        })
-    }
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setError(null)

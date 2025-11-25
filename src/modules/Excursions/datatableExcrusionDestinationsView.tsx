@@ -31,6 +31,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import type { Destinations } from './shared/dtoDestinations'
+import { getExcursionDestination } from './shared/serviceExcursionsDestinations'
 
 export const columns: ColumnDef<Destinations>[] = [
   {
@@ -155,31 +156,44 @@ export const columns: ColumnDef<Destinations>[] = [
   // },
 ]
 
-interface DatatableExcursionDestinationsProps {
-  destinations?: Destinations[]
-  loading?: boolean
-  onSelectionChange?: (selectedIds: number[]) => void
+interface DatatableExcursionDestinationsViewProps {
+  excursionId: number
 }
 
-export default function DatatableExcursionDestinations({ 
-  destinations = [],
-  loading = false,
-  onSelectionChange
-}: DatatableExcursionDestinationsProps) {
+export default function DatatableExcursionDestinationsView({ 
+  excursionId
+}: DatatableExcursionDestinationsViewProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
   const [rowSelection, setRowSelection] = React.useState({})
+  const [destinations, setDestinations] = React.useState<Destinations[]>([])
+  const [loading, setLoading] = React.useState(false)
 
-  // Notificar cambios de selección al componente padre
+  // Cargar destinos de la excursión
   React.useEffect(() => {
-    const selectedRows = Object.entries(rowSelection)
-      .filter(([, isSelected]) => isSelected)
-      .map(([index]) => destinations[parseInt(index)]?.id)
-      .filter((id) => id !== undefined) as number[]
-    
-    onSelectionChange?.(selectedRows)
-  }, [rowSelection, destinations, onSelectionChange])
+    const loadDestinations = async () => {
+      try {
+        setLoading(true)
+        const data = await getExcursionDestination(excursionId)
+        
+        // Extraer destinos anidados de la respuesta
+        const destinationsList = data
+          .map((item) => item.destinations)
+          .filter((dest) => dest !== null && dest !== undefined) as unknown as Destinations[]
+        
+        setDestinations(destinationsList)
+      } catch {
+        setDestinations([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (excursionId) {
+      loadDestinations()
+    }
+  }, [excursionId])
 
   const table = useReactTable({
     data: destinations,
