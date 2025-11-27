@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ConditionalLayout } from "@/components/layout/ConditionalLayout";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/Core/Context/Providers";
 
@@ -21,10 +21,10 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.className} `} >
         <Providers>
-          <DashboardLayout>
+          <ConditionalLayout>
             {children}
-          <Toaster/>
-          </DashboardLayout>
+            <Toaster />
+          </ConditionalLayout>
         </Providers>
       </body>
     </html>

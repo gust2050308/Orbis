@@ -10,6 +10,8 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { SidebarNav } from "./SidebarNav";
+import { UserInfo } from "@/components/UserInfo";
+import { LogoutButton } from "@/components/LogoutButton";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   return (
@@ -37,16 +39,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarContent>
 
       {/* Footer con info de usuario */}
-      <SidebarFooter className="border-t border-[#256EFF]/20">
-        <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[#07BEB8] text-white text-xs font-semibold">
-            GU
-          </div>
-          <div className="flex flex-col gap-0.5 text-xs">
-            <span className="font-medium text-[#102542]">Usuario</span>
-            <span className="text-[#102542]/60">usuario@orbis.com</span>
-          </div>
-        </div>
+      <SidebarFooter className="border-t border-[#256EFF]/20 gap-2">
+        <UserInfo />
+        <LogoutButton />
       </SidebarFooter>
 
       <SidebarRail />
