@@ -19,12 +19,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} `} >
         <Providers>
           <DashboardLayout>
             {children}
-          </DashboardLayout>
           <Toaster/>
+          </DashboardLayout>
         </Providers>
       </body>
     </html>

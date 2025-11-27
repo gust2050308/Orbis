@@ -43,8 +43,7 @@ export function useLogin() {
             access_type: "offline",
             prompt: "consent",
           },
-          redirectTo: `${window.location.origin}/auth/confirm`
-, // Redirige al callback de tu app
+          redirectTo: `${window.location.origin}/auth/confirm`, // Redirige al callback de tu app
         },
       });
 
