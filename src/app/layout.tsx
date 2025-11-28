@@ -7,10 +7,18 @@ import { Providers } from "@/Core/Context/Providers";
 
 const inter = Inter({ subsets: ["latin"] });
 
+// ...existing code...
 export const metadata: Metadata = {
   title: "Orbis - Gestión de Destinos",
   description: "Sistema de gestión de destinos turísticos",
+  icons: {
+    icon: "/Orbis.svg",
+    // opcional: añade png/ico para compatibilidad con navegadores antiguos
+    shortcut: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+  },
 };
+// ...existing code...
 
 export default function RootLayout({
   children,

@@ -10,7 +10,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar";
 import { SidebarNav } from "./SidebarNav";
-import { UserInfo } from "@/components/UserInfo";
+import { UserInfo } from "@/modules/User/Views/UserInfo";
 import { LogoutButton } from "@/components/LogoutButton";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
