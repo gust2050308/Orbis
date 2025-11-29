@@ -29,17 +29,19 @@ export function UserInfo() {
   const [formData, setFormData] = useState<Partial<UserProfile>>({});
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [showSetPasswordDialog, setShowSetPasswordDialog] = useState(false);
+  const [profileLoaded, setProfileLoaded] = useState(false);
 
-  // Cargar perfil completo cuando se abre el drawer
+  // Cargar perfil completo cuando el componente se monta (precargar datos)
   useEffect(() => {
     const loadUserProfile = async () => {
-      if (open && authUser && isAuthenticated) {
+      if (authUser && isAuthenticated && !profileLoaded) {
         setLoadingProfile(true);
         try {
           const profile = await userProfileService.getUserProfile(authUser.id);
           setUserProfile(profile);
           setFormData(profile);
           setImagePreview(profile.profile_image);
+          setProfileLoaded(true);
         } catch (error) {
           console.error('Error loading profile:', error);
           // Si no existe el perfil en la tabla users, usar datos básicos del auth
@@ -62,7 +64,7 @@ export function UserInfo() {
     };
 
     loadUserProfile();
-  }, [open, authUser, isAuthenticated]);
+  }, [authUser, isAuthenticated, profileLoaded]);
 
   const handleImageSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -168,7 +170,7 @@ export function UserInfo() {
                   {initials}
                 </div>
               )}
-              <div className="flex flex-col gap-0.5 text-xs">
+              <div className="flex flex-col gap-0.5 text-xs group-data-[collapsible=icon]:hidden">
                 <span className="font-medium text-[#102542] truncate max-w-[120px]">
                   {authUser.user_metadata?.full_name || 'Usuario'}
                 </span>

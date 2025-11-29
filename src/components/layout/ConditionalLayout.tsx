@@ -11,8 +11,8 @@ export function ConditionalLayout({ children }: ConditionalLayoutProps) {
     const pathname = usePathname()
 
     // Rutas que NO deben tener el sidebar/dashboard layout
-    const publicRoutes = ['/', '/Views/auth', '/Views/landing', '/login', '/error']
-    const publicPrefixes = ['/auth'] // Para callbacks como /auth/confirm
+    const publicRoutes = ['/', '/Views/auth', '/Views/landing', '/login', '/error', '/Views/reset-password']
+    const publicPrefixes = ['/auth', '/auth/confirm', '/Views/reset-password'] // Para callbacks como /auth/confirm
 
     const isPublicRoute =
         publicRoutes.includes(pathname || '') ||

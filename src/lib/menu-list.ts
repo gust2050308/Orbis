@@ -1,10 +1,11 @@
-import { 
-  LayoutDashboard, 
-  MapPin, 
-  Calendar, 
+import {
+  LayoutDashboard,
+  MapPin,
+  Calendar,
   Settings,
   Users,
-  FileText
+  FileText,
+  Send
 } from "lucide-react";
 
 export interface MenuItem {
@@ -30,22 +31,11 @@ export const menuList: MenuItem[] = [
     title: "Destinos",
     href: "/Views/destinations",
     icon: MapPin,
-    badge: "Nuevo",
   },
   {
     title: "Excursiones",
-    href: "/modules/Excursions",
+    href: "/Views/Excursions",
     icon: Calendar,
-    subItems: [
-      {
-        title: "Ver todas",
-        href: "/modules/Excursions/list",
-      },
-      {
-        title: "Crear nueva",
-        href: "/modules/Excursions/create",
-      },
-    ],
   },
   {
     title: "Usuarios",
@@ -53,13 +43,8 @@ export const menuList: MenuItem[] = [
     icon: Users,
   },
   {
-    title: "Documentos",
-    href: "/documents",
-    icon: FileText,
-  },
-  {
-    title: "Configuración",
-    href: "/settings",
-    icon: Settings,
-  },
+    title: 'Mis viajes',
+    href: '/Views/MyJourneys',
+    icon: Send,
+  }
 ];

@@ -92,7 +92,7 @@ export default function CardExcursions({ excursions, onRefresh }: CardExcursions
   }
 
   const handleCardClick = (excId: number) => {
-    router.push(`/Views/Excursiones/${excId}`)
+    router.push(`/Views/Excursions/${excId}`)
   }
 
   if (!activeExcursions || excursions.length === 0) {

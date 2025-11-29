@@ -14,8 +14,10 @@ export function LogoutButton() {
             variant="outline"
             className="w-full justify-start"
         >
-            <LogOut className="mr-2 h-4 w-4" />
-            {isLoading ? 'Cerrando sesión...' : 'Cerrar sesión'}
+            <LogOut className="h-4 w-4" />
+            <span className="group-data-[collapsible=icon]:hidden">
+                {isLoading ? 'Cerrando sesión...' : 'Cerrar sesión'}
+            </span>
         </Button>
     )
 }

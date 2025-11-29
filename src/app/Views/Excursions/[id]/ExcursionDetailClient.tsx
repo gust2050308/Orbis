@@ -14,7 +14,6 @@ import {
     CarouselPrevious,
 } from "@/components/ui/carousel"
 import { ExcursionRouteMap } from '@/modules/Excursions/ExcursionRouteMap'
-import GoogleMapsProvider from '@/modules/Destinations/Views/GoogleMapsProvider'
 import { getExcursionDestinations } from '@/modules/Excursions/shared/serviceExcursionsDestinations'
 import { destinationImagesService } from '@/modules/Destinations/Services/destinationImagesService'
 import type { Excursion } from '@/modules/Excursions/shared/dtoExcursion'
@@ -229,9 +228,7 @@ export default function ExcursionDetailClient({ excursion }: ExcursionDetailClie
                         {/* Mapa de ruta  Number(excursion.available_seats)*/}
                         <div>
                             <h2 className="text-2xl font-bold text-[#102542] mb-4">Ruta del Viaje</h2>
-                            <GoogleMapsProvider>
-                                <ExcursionRouteMap destinations={destinations} />
-                            </GoogleMapsProvider>
+                            <ExcursionRouteMap destinations={destinations} />
                         </div>
                     </div>
 
