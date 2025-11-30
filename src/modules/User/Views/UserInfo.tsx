@@ -164,6 +164,8 @@ export function UserInfo() {
                 <Image
                   src={displayImage}
                   alt={fullName}
+                  width={18}
+                  height={18}
                   className="h-8 w-8 rounded-full object-cover border-2 border-[#256EFF]/20 group-hover:border-[#256EFF]/40 transition-colors"
                 />
               ) : (
@@ -204,6 +206,8 @@ export function UserInfo() {
                     {imagePreview ? (
                       <Image
                         src={imagePreview}
+                        width={32}
+                        height={32}
                         alt="Profile"
                         className="w-32 h-32 rounded-full object-cover border-4 border-[#256EFF]/20"
                       />

@@ -17,6 +17,7 @@ import { ExcursionRouteMap } from '@/modules/Excursions/ExcursionRouteMap'
 import { getExcursionDestinations } from '@/modules/Excursions/shared/serviceExcursionsDestinations'
 import { destinationImagesService } from '@/modules/Destinations/Services/destinationImagesService'
 import type { Excursion } from '@/modules/Excursions/shared/dtoExcursion'
+import { ReservationDialog } from '@/components/ReservationDialog'
 import {
     ArrowLeft,
     Calendar,
@@ -48,6 +49,7 @@ export default function ExcursionDetailClient({ excursion }: ExcursionDetailClie
     const [destinations, setDestinations] = useState<DestinationWithImages[]>([])
     const [allImages, setAllImages] = useState<string[]>([])
     const [loading, setLoading] = useState(true)
+    const [showReservationDialog, setShowReservationDialog] = useState(false)
     const minDeposit = excursion.min_deposit !== null && excursion.min_deposit !== undefined
         ? Number(excursion.min_deposit)
         : null
@@ -254,14 +256,12 @@ export default function ExcursionDetailClient({ excursion }: ExcursionDetailClie
                                     {/* Botón de reserva */}
                                     <Button
                                         className="w-full bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:from-[#1557d8] hover:to-[#06a89a] text-white font-semibold py-6 text-lg shadow-lg hover:shadow-xl transition-all"
-                                        disabled
+                                        onClick={() => setShowReservationDialog(true)}
+                                        disabled={Number(excursion.available_seats ?? 0) <= 0}
                                     >
                                         <CreditCard className="w-5 h-5 mr-2" />
-                                        Reservar Ahora
+                                        {Number(excursion.available_seats ?? 0) <= 0 ? 'Sin lugares disponibles' : 'Reservar Ahora'}
                                     </Button>
-                                    <p className="text-xs text-center text-[#102542]/50">
-                                        *Función de pago próximamente
-                                    </p>
 
                                     {/* Características incluidas */}
                                     <div className="pt-6 border-t border-[#256EFF]/10">
@@ -293,6 +293,13 @@ export default function ExcursionDetailClient({ excursion }: ExcursionDetailClie
                     </div>
                 </div>
             </div>
+
+            {/* Reservation Dialog */}
+            <ReservationDialog
+                excursion={excursion}
+                open={showReservationDialog}
+                onOpenChange={setShowReservationDialog}
+            />
         </div>
     )
 }

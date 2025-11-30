@@ -13,12 +13,13 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
 // Configuración de la app
 export const STRIPE_CONFIG = {
     currency: 'mxn',
-    paymentMethodTypes: ['card'],
+    paymentMethodTypes: ['card'] as const,
     mode: 'payment' as const,
 };
 
 // URLs de éxito y cancelación
 export const getCheckoutUrls = (excursionId: number) => ({
-    success: `${process.env.NEXT_PUBLIC_APP_URL}/reservations/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel: `${process.env.NEXT_PUBLIC_APP_URL}/Views/Excursions/${excursionId}`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/reservations/success?session_id={CHECKOUT_SESSION_ID}`,
+    cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/Views/Excursions/${excursionId}`,
 });
+
