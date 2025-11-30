@@ -64,7 +64,7 @@ export const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'im
  * Type guards
  */
 export function isValidUserRole(role: string): role is UserProfile['role'] {
-  return Object.values(USER_ROLES).includes(role as any);
+  return Object.values(USER_ROLES).includes(role as UserProfile['role']);
 }
 
 export function isValidImageType(type: string): boolean {

@@ -6,6 +6,7 @@ import { User, Camera, Loader2, MapPin, Phone, Lock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Image from 'next/image';
 import {
   Drawer,
   DrawerClose,
@@ -160,7 +161,7 @@ export function UserInfo() {
           <button className="w-full text-left hover:bg-[#256EFF]/10 transition-colors rounded-lg p-2 group">
             <div className="flex items-center gap-2">
               {displayImage ? (
-                <img
+                <Image
                   src={displayImage}
                   alt={fullName}
                   className="h-8 w-8 rounded-full object-cover border-2 border-[#256EFF]/20 group-hover:border-[#256EFF]/40 transition-colors"
@@ -201,7 +202,7 @@ export function UserInfo() {
                 <div className="flex flex-col items-center gap-4 pb-6 border-b border-[#256EFF]/20">
                   <div className="relative">
                     {imagePreview ? (
-                      <img
+                      <Image
                         src={imagePreview}
                         alt="Profile"
                         className="w-32 h-32 rounded-full object-cover border-4 border-[#256EFF]/20"
@@ -389,7 +390,7 @@ export function UserInfo() {
                         Tu cuenta está protegida con contraseña
                       </p>
                       <p className="text-xs text-[#102542]/40 mt-1">
-                        Usa "¿Olvidaste tu contraseña?" en el login para cambiarla
+                        Usa &quot;¿Olvidaste tu contraseña?&quot; en el login para cambiarla
                       </p>
                     </div>
                   )}
