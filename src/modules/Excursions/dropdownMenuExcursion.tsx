@@ -50,7 +50,7 @@ export default function DropdownMenuExcursion({
                     size="sm"
                     disabled={loading}
                 >
-                    <MoreHorizontal className="h-4 w-4" />
+                    <MoreHorizontal className="text-white h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

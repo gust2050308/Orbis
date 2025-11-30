@@ -35,7 +35,7 @@ export default function ContentExcursion() {
   if (loading) return <div>Cargando...</div>
 
   return (
-    <div className='py-2 px-4 flex flex-col gap-4'>
+    <div className='px-4 flex flex-col gap-4'>
         <div className='w-full flex flex-row gap-4 '>
           <div className='w-5/6 flex flex-row gap-4'>
             <Input
@@ -46,7 +46,7 @@ export default function ContentExcursion() {
                     className="flex-1"
                 />
                 <Button
-                    className="bg-[#256EFF] hover:bg-[#256EFF]/90"
+                    className="bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90"
                     onClick={handleSearch}
                 >
                     <Search />

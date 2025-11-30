@@ -19,6 +19,8 @@ import { getExcursionDestinations } from './shared/serviceExcursionsDestinations
 import { destinationImagesService } from '@/modules/Destinations/Services/destinationImagesService'
 import { Calendar, MapPin, Users, DollarSign } from 'lucide-react'
 import Image from 'next/image'
+import { Button } from '@/components/ui/button'
+import {ArrowRight} from 'lucide-react'
 
 interface CardExcursionsProps {
   excursions: Excursion[]
@@ -138,16 +140,20 @@ export default function CardExcursions({ excursions, onRefresh }: CardExcursions
 
               {/* Precio destacado */}
               <div className="absolute bottom-3 left-3 z-10">
-                <div className="bg-white/10 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
+                <div className="bg-white/30 backdrop-blur-sm rounded-lg px-3 py-2 shadow-lg">
                   <p className="text-xs text-white font-medium">Desde</p>
                   <p className="text-2xl font-bold text-blue-500">
-                    ${Number(exc.price ?? 0).toFixed(2)}
+                    <span className='bg-gradient-to-r from-[#256EFF] to-[#07BEB8] text-transparent bg-clip-text'>
+                      ${Number(exc.price ?? 0).toFixed(2)}
+                      <span className="text-[12px] text-gray-200 font-light"> MXN</span>
+
+                    </span>
                   </p>
                 </div>
               </div>
             </div>
 
-            <CardHeader className='pb-3'>
+            <CardHeader className=''>
               <CardTitle
                 className='text-lg font-bold line-clamp-2 cursor-pointer hover:text-[#256EFF] transition-colors'
                 onClick={() => handleCardClick(exc.id)}
@@ -159,7 +165,7 @@ export default function CardExcursions({ excursions, onRefresh }: CardExcursions
               </CardDescription>
             </CardHeader>
 
-            <CardContent className='pb-3 space-y-3'>
+            <CardContent className='space-y-3'>
               {/* Badges informativos */}
               <div className='flex flex-wrap gap-2'>
                 {exc.duration_days && (
@@ -170,8 +176,10 @@ export default function CardExcursions({ excursions, onRefresh }: CardExcursions
                 )}
                 {exc.available_seats !== null && exc.available_seats !== undefined && (
                   <Badge
-                    variant={Number(exc.available_seats) > 0 ? "default" : "destructive"}
-                    className="flex items-center gap-1"
+                    className={`flex items-center gap-1 ${Number(exc.available_seats) > 10
+                      ? 'bg-green-500/10 text-green-700'
+                      : 'bg-orange-500/10 text-orange-700'
+                      }`}
                   >
                     <Users className="w-3 h-3" />
                     {exc.available_seats} lugares
@@ -184,24 +192,33 @@ export default function CardExcursions({ excursions, onRefresh }: CardExcursions
                 {exc.min_deposit && Number(exc.min_deposit) > 0 && (
                   <div className='flex items-center gap-2'>
                     <DollarSign className="w-4 h-4 text-[#07BEB8]" />
-                    <span>Depósito desde ${Number(exc.min_deposit).toFixed(2)}</span>
+                    <span>Reserva desde ${Number(exc.min_deposit).toFixed(2)}</span>
                   </div>
                 )}
               </div>
+              <div className='flex items-center gap-2 text-sm'>
+                <Calendar className="w-3 h-3" />
+                {exc.start_date ? new Date(exc.start_date).toLocaleDateString('es-ES', {
+                  day: 'numeric',
+                  month: 'short'
+                }) : '—'}
+                {' - '}
+                {exc.end_date ? new Date(exc.end_date).toLocaleDateString('es-ES', {
+                  day: 'numeric',
+                  month: 'short',
+                  year: 'numeric'
+                }) : '—'}
+              </div>
             </CardContent>
 
-            <CardFooter className='pt-3 border-t border-[#256EFF]/10 text-xs text-muted-foreground flex items-center gap-2'>
-              <Calendar className="w-3 h-3" />
-              {exc.start_date ? new Date(exc.start_date).toLocaleDateString('es-ES', {
-                day: 'numeric',
-                month: 'short'
-              }) : '—'}
-              {' - '}
-              {exc.end_date ? new Date(exc.end_date).toLocaleDateString('es-ES', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-              }) : '—'}
+            <CardFooter className='pt-2 border-t border-[#256EFF]/10 text-xs text-muted-foreground flex items-center gap-2'>
+              <Button
+                className="w-full bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white group"
+                onClick={() => router.push(`/Views/Excursions/${exc.id}`)}
+              >
+                Ver detalles
+                <ArrowRight className="ml-2 h-4 w-4 group-hover:translate-x-1 transition-transform" />
+              </Button>
             </CardFooter>
           </Card>
         ))}
