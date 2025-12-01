@@ -55,6 +55,7 @@ export interface CreatePurchaseData {
     payment_type: PaymentType;
     total_amount: number;
     amount_to_pay: number;
+    number_of_people?: number; // Opcional, por defecto 1
 }
 
 // Tipo para la respuesta del checkout

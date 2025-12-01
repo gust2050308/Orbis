@@ -19,7 +19,7 @@ export const STRIPE_CONFIG = {
 
 // URLs de éxito y cancelación
 export const getCheckoutUrls = (excursionId: number) => ({
-    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/reservations/success?session_id={CHECKOUT_SESSION_ID}`,
+    success_url: `${process.env.NEXT_PUBLIC_APP_URL}/Views/reservations/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/Views/Excursions/${excursionId}`,
 });
 

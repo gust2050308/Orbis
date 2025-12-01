@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
-import { Loader2, CreditCard, Wallet, AlertCircle } from 'lucide-react'
+import { Loader2, CreditCard, Wallet, AlertCircle, Users, Minus, Plus } from 'lucide-react'
 import { purchaseService } from '@/services/purchaseService'
 import type { Excursion } from '@/modules/Excursions/shared/dtoExcursion'
 import type { PaymentType } from '@/types/purchases'
@@ -23,29 +23,40 @@ interface ReservationDialogProps {
 
 export function ReservationDialog({ excursion, open, onOpenChange }: ReservationDialogProps) {
     const [paymentType, setPaymentType] = useState<PaymentType>('deposit')
+    const [numberOfPeople, setNumberOfPeople] = useState(1)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
     const price = Number(excursion.price ?? 0)
     const minDeposit = Number(excursion.min_deposit ?? 0)
-    const amountToPay = paymentType === 'deposit' ? minDeposit : price
+    const totalPrice = price * numberOfPeople
+    const totalMinDeposit = minDeposit * numberOfPeople
+    const amountToPay = paymentType === 'deposit' ? totalMinDeposit : totalPrice
+    const availableSeats = Number(excursion.available_seats ?? 0)
+
+    const handleNumberOfPeopleChange = (increment: number) => {
+        const newValue = numberOfPeople + increment
+        if (newValue >= 1 && newValue <= Math.min(10, availableSeats)) {
+            setNumberOfPeople(newValue)
+        }
+    }
 
     const handleReserve = async () => {
         try {
             setLoading(true)
             setError(null)
 
-            const availableSeats = Number(excursion.available_seats ?? 0)
-            if (availableSeats <= 0) {
-                setError('No hay lugares disponibles para esta excursión')
+            if (availableSeats < numberOfPeople) {
+                setError(`Solo hay ${availableSeats} lugares disponibles`)
                 return
             }
 
             const { url } = await purchaseService.createCheckout({
                 excursion_id: excursion.id,
                 payment_type: paymentType,
-                total_amount: price,
+                total_amount: totalPrice,
                 amount_to_pay: amountToPay,
+                number_of_people: numberOfPeople,
             })
 
             if (url) {
@@ -63,7 +74,7 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
+            <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto no-scrollbar">
                 <DialogHeader>
                     <DialogTitle className="text-2xl font-bold text-[#102542]">
                         Reservar Excursión
@@ -74,12 +85,69 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
                 </DialogHeader>
 
                 <div className="space-y-6 py-4">
+                    {/* Grid para organizar mejor en pantallas grandes */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {/* Number of People Selector */}
+                        <div>
+                            <Label className="text-base font-semibold text-[#102542] mb-3 block">
+                                Número de personas
+                            </Label>
+                            <div className="flex items-center justify-between bg-slate-50 rounded-lg p-4">
+                                <div className="flex items-center gap-2">
+                                    <Users className="w-5 h-5 text-[#256EFF]" />
+                                    <span className="text-sm text-[#102542]/60">
+                                        Disponibles: {availableSeats}
+                                    </span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => handleNumberOfPeopleChange(-1)}
+                                        disabled={numberOfPeople <= 1}
+                                        className="h-8 w-8"
+                                    >
+                                        <Minus className="h-4 w-4" />
+                                    </Button>
+                                    <span className="text-xl font-bold text-[#102542] min-w-[3ch] text-center">
+                                        {numberOfPeople}
+                                    </span>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => handleNumberOfPeopleChange(1)}
+                                        disabled={numberOfPeople >= Math.min(10, availableSeats)}
+                                        className="h-8 w-8"
+                                    >
+                                        <Plus className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Resumen */}
+                        <div className="bg-slate-50 rounded-lg p-4 space-y-2">
+                            <div className="flex justify-between text-xs text-[#102542]/50">
+                                <span>Precio por persona:</span>
+                                <span>${price.toFixed(2)} MXN</span>
+                            </div>
+                            <div className="flex justify-between text-sm">
+                                <span className="text-[#102542]/60">Total ({numberOfPeople} {numberOfPeople === 1 ? 'persona' : 'personas'}):</span>
+                                <span className="font-semibold text-[#102542]">${totalPrice.toFixed(2)} MXN</span>
+                            </div>
+                            <div className="flex justify-between text-lg font-bold border-t pt-2">
+                                <span className="text-[#102542]">A pagar ahora:</span>
+                                <span className="text-[#256EFF]">${amountToPay.toFixed(2)} MXN</span>
+                            </div>
+                        </div>
+                    </div>
+
                     {/* Opciones de pago */}
                     <div>
                         <Label className="text-base font-semibold text-[#102542] mb-3 block">
                             Selecciona tu opción de pago
                         </Label>
-                        <div className="space-y-3">
+                        <div className="grid md:grid-cols-2 gap-3">
                             {/* Opción de depósito */}
                             {minDeposit > 0 && (
                                 <button
@@ -89,7 +157,7 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
                                             : 'border-[#256EFF]/20 hover:border-[#256EFF]/40'
                                         }`}
                                 >
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${paymentType === 'deposit' ? 'border-[#256EFF]' : 'border-gray-300'
+                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${paymentType === 'deposit' ? 'border-[#256EFF]' : 'border-gray-300'
                                         }`}>
                                         {paymentType === 'deposit' && (
                                             <div className="w-3 h-3 rounded-full bg-[#256EFF]" />
@@ -101,10 +169,10 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
                                             <span className="font-semibold text-[#102542]">Pagar Depósito</span>
                                         </div>
                                         <p className="text-sm text-[#102542]/60">
-                                            Reserva con ${minDeposit.toFixed(2)} MXN ahora
+                                            ${totalMinDeposit.toFixed(2)} MXN ahora
                                         </p>
                                         <p className="text-xs text-[#102542]/40 mt-1">
-                                            Paga el resto (${(price - minDeposit).toFixed(2)} MXN) después
+                                            Resto: ${(totalPrice - totalMinDeposit).toFixed(2)} MXN
                                         </p>
                                     </div>
                                 </button>
@@ -118,7 +186,7 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
                                         : 'border-[#256EFF]/20 hover:border-[#256EFF]/40'
                                     }`}
                             >
-                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 ${paymentType === 'full' ? 'border-[#07BEB8]' : 'border-gray-300'
+                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mt-0.5 flex-shrink-0 ${paymentType === 'full' ? 'border-[#07BEB8]' : 'border-gray-300'
                                     }`}>
                                     {paymentType === 'full' && (
                                         <div className="w-3 h-3 rounded-full bg-[#07BEB8]" />
@@ -130,7 +198,7 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
                                         <span className="font-semibold text-[#102542]">Pago Completo</span>
                                     </div>
                                     <p className="text-sm text-[#102542]/60">
-                                        Paga ${price.toFixed(2)} MXN ahora
+                                        ${totalPrice.toFixed(2)} MXN ahora
                                     </p>
                                     {minDeposit > 0 && (
                                         <p className="text-xs text-green-600 mt-1 font-medium">
@@ -142,22 +210,10 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
                         </div>
                     </div>
 
-                    {/* Resumen */}
-                    <div className="bg-slate-50 rounded-lg p-4 space-y-2">
-                        <div className="flex justify-between text-sm">
-                            <span className="text-[#102542]/60">Precio total:</span>
-                            <span className="font-semibold text-[#102542]">${price.toFixed(2)} MXN</span>
-                        </div>
-                        <div className="flex justify-between text-lg font-bold border-t pt-2">
-                            <span className="text-[#102542]">A pagar ahora:</span>
-                            <span className="text-[#256EFF]">${amountToPay.toFixed(2)} MXN</span>
-                        </div>
-                    </div>
-
                     {/* Error */}
                     {error && (
                         <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2">
-                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5" />
+                            <AlertCircle className="h-4 w-4 text-red-600 mt-0.5 flex-shrink-0" />
                             <p className="text-sm text-red-800">{error}</p>
                         </div>
                     )}
@@ -184,7 +240,7 @@ export function ReservationDialog({ excursion, open, onOpenChange }: Reservation
                         </Button>
                         <Button
                             onClick={handleReserve}
-                            disabled={loading || Number(excursion.available_seats ?? 0) <= 0}
+                            disabled={loading || availableSeats < numberOfPeople}
                             className="flex-1 bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white"
                         >
                             {loading ? (

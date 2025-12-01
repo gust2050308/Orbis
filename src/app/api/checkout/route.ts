@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
 
         // Obtener datos del body
         const body: CreatePurchaseData = await request.json();
-        const { excursion_id, payment_type, total_amount, amount_to_pay } = body;
+        const { excursion_id, payment_type, total_amount, amount_to_pay, number_of_people = 1 } = body;
 
         // Validar datos
         if (!excursion_id || !payment_type || !total_amount || !amount_to_pay) {
@@ -73,6 +73,7 @@ export async function POST(request: NextRequest) {
                 excursion_id,
                 total_amount,
                 amount_paid: 0,
+                number_of_people,
                 currency: STRIPE_CONFIG.currency,
                 payment_type,
                 status: 'pending',
@@ -99,7 +100,7 @@ export async function POST(request: NextRequest) {
                     price_data: {
                         currency: STRIPE_CONFIG.currency,
                         product_data: {
-                            name: excursion.title,
+                            name: `${excursion.title} (${number_of_people} ${number_of_people === 1 ? 'persona' : 'personas'})`,
                             description: `${payment_type === 'deposit' ? 'Depósito' : 'Pago completo'} - ${excursion.description || ''}`,
                             images: [],
                         },

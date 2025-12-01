@@ -21,7 +21,7 @@ import { toast } from 'sonner';
 import { userProfileService, type UserProfile } from '@/modules/User/Service/UserProfileService';
 import { SetPasswordDialog } from '@/modules/User/Components/SetPasswordDialog';
 
-export function UserInfo() {
+export default function UserInfo() {
   const { user: authUser, loading, isAuthenticated } = useAuth();
   const [open, setOpen] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(false);
