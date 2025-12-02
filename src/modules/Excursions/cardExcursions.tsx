@@ -20,14 +20,16 @@ import { destinationImagesService } from '@/modules/Destinations/Services/destin
 import { Calendar, MapPin, Users, DollarSign } from 'lucide-react'
 import Image from 'next/image'
 import { Button } from '@/components/ui/button'
-import {ArrowRight} from 'lucide-react'
+import { ArrowRight } from 'lucide-react'
 
 interface CardExcursionsProps {
   excursions: Excursion[]
   onRefresh?: () => void
+  isAdmin?: boolean  // AGREGAR ESTA LÍNEA
 }
 
-export default function CardExcursions({ excursions, onRefresh }: CardExcursionsProps) {
+export default function CardExcursions({ excursions, onRefresh, isAdmin = false }: CardExcursionsProps) {
+
   const router = useRouter()
   const [selectedExcursion, setSelectedExcursion] = useState<Excursion | null>(null)
   const [openDetailsModal, setOpenDetailsModal] = useState(false)
@@ -129,14 +131,16 @@ export default function CardExcursions({ excursions, onRefresh }: CardExcursions
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/20 to-transparent" />
 
               {/* Dropdown menu en la esquina */}
-              <div className="absolute top-3 right-3 z-10">
-                <DropdownMenuExcursion
-                  excursion={exc}
-                  onView={handleView}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
-              </div>
+              {isAdmin && (
+                <div className="absolute top-3 right-3 z-10">
+                  <DropdownMenuExcursion
+                    excursion={exc}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
+                </div>
+              )}
 
               {/* Precio destacado */}
               <div className="absolute bottom-3 left-3 z-10">

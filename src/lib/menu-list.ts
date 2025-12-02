@@ -38,11 +38,6 @@ export const menuList: MenuItem[] = [
     icon: Calendar,
   },
   {
-    title: "Usuarios",
-    href: "/modules/Auth",
-    icon: Users,
-  },
-  {
     title: 'Mis viajes',
     href: '/Views/MyJourneys',
     icon: Send,
