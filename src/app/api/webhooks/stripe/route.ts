@@ -75,71 +75,131 @@ async function handleCheckoutCompleted(
     session: Stripe.Checkout.Session,
     supabase: any
 ) {
-    const purchaseId = session.metadata?.purchase_id;
-    const paymentType = session.metadata?.payment_type;
+    const metadata = session.metadata;
+    const paymentType = metadata?.payment_type;
+    const userId = metadata?.user_id;
+    const excursionId = metadata?.excursion_id;
+    const totalAmount = metadata?.total_amount;
+    const amountToPay = metadata?.amount_to_pay;
+    const numberOfPeople = metadata?.number_of_people;
+    const currency = metadata?.currency;
+    const expiresAt = metadata?.expires_at;
 
-    if (!purchaseId) {
-        console.error('No purchase_id in session metadata');
-        return;
-    }
-
-    // Obtener la reserva
-    const { data: purchase, error: fetchError } = await supabase
-        .from('purchases')
-        .select('*')
-        .eq('id', purchaseId)
-        .single();
-
-    if (fetchError || !purchase) {
-        console.error('Purchase not found:', purchaseId);
+    // Validar que tenemos todos los datos necesarios
+    if (!userId || !excursionId || !totalAmount || !amountToPay) {
+        console.error('Missing required metadata in session:', session.id);
         return;
     }
 
     // Calcular el monto pagado
     const amountPaid = session.amount_total ? session.amount_total / 100 : 0;
+    const totalAmountNum = parseFloat(totalAmount);
+    const numberOfPeopleNum = parseInt(numberOfPeople || '1');
 
-    // Actualizar la reserva
-    const newStatus = paymentType === 'full' || amountPaid >= purchase.total_amount
+    // Si es un pago "remaining", buscar la compra existente para actualizarla
+    if (paymentType === 'remaining') {
+        // Buscar la compra existente del usuario para esta excursión
+        const { data: existingPurchase, error: fetchError } = await supabase
+            .from('purchases')
+            .select('*')
+            .eq('user_id', userId)
+            .eq('excursion_id', parseInt(excursionId))
+            .in('status', ['reserved', 'pending'])
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (fetchError || !existingPurchase) {
+            console.error('Existing purchase not found for remaining payment:', session.id);
+            return;
+        }
+
+        // Actualizar la compra existente
+        const newAmountPaid = existingPurchase.amount_paid + amountPaid;
+        const newStatus = newAmountPaid >= totalAmountNum ? 'paid' : 'pending';
+
+        await supabase
+            .from('purchases')
+            .update({
+                status: newStatus,
+                amount_paid: newAmountPaid,
+            })
+            .eq('id', existingPurchase.id);
+
+        // Crear registro de pago adicional
+        await supabase
+            .from('payments')
+            .insert({
+                purchase_id: existingPurchase.id,
+                amount: amountPaid,
+                payment_type: 'remaining',
+                status: 'succeeded',
+                stripe_payment_id: session.payment_intent as string,
+            });
+
+        console.log(`Purchase ${existingPurchase.id} updated with remaining payment. New status: ${newStatus}`);
+        return;
+    }
+
+    // Para pagos completos o depósitos, crear nueva compra
+    // Determinar estado:
+    // - 'paid': Si es pago completo o si ya se pagó todo
+    // - 'pending': Si es depósito (falta completar el pago)
+    const newStatus = paymentType === 'full' || amountPaid >= totalAmountNum
         ? 'paid'
-        : 'reserved';
+        : 'pending';
 
-    await supabase
+    // CREAR la compra (no actualizar)
+    const { data: purchase, error: purchaseError } = await supabase
         .from('purchases')
-        .update({
+        .insert({
+            user_id: userId,
+            excursion_id: parseInt(excursionId),
+            total_amount: totalAmountNum,
+            amount_paid: amountPaid,
+            number_of_people: numberOfPeopleNum,
+            currency: currency || 'mxn',
+            payment_type: paymentType || 'full',
             status: newStatus,
-            amount_paid: purchase.amount_paid + amountPaid,
+            refund_status: 'none',
+            stripe_session_id: session.id,
             stripe_payment_id: session.payment_intent as string,
+            expires_at: expiresAt,
         })
-        .eq('id', purchaseId);
+        .select()
+        .single();
+
+    if (purchaseError || !purchase) {
+        console.error('Error creating purchase from webhook:', purchaseError);
+        return;
+    }
 
     // Crear registro de pago
     await supabase
         .from('payments')
         .insert({
-            purchase_id: purchaseId,
+            purchase_id: purchase.id,
             amount: amountPaid,
             payment_type: paymentType || 'full',
             status: 'succeeded',
             stripe_payment_id: session.payment_intent as string,
         });
 
-    // Reducir lugares disponibles si es el primer pago
-    if (purchase.amount_paid === 0) {
-        const { data: excursion } = await supabase
-            .from('excursions')
-            .select('available_seats')
-            .eq('id', purchase.excursion_id)
-            .single();
+    // Reducir lugares disponibles
+    const { data: excursion } = await supabase
+        .from('excursions')
+        .select('available_seats')
+        .eq('id', parseInt(excursionId))
+        .single();
 
-        if (excursion && excursion.available_seats > 0) {
-            await supabase
-                .from('excursions')
-                .update({ available_seats: excursion.available_seats - 1 })
-                .eq('id', purchase.excursion_id);
-        }
+    if (excursion && excursion.available_seats > 0) {
+        await supabase
+            .from('excursions')
+            .update({ available_seats: excursion.available_seats - 1 })
+            .eq('id', parseInt(excursionId));
     }
 
-    console.log(`Purchase ${purchaseId} updated to ${newStatus}`);
+    console.log(`Purchase ${purchase.id} created with status ${newStatus}`);
 }
 
 // Handler para cuando el pago es exitoso

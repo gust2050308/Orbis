@@ -65,33 +65,8 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Crear reserva en la base de datos
-        const { data: purchase, error: purchaseError } = await supabase
-            .from('purchases')
-            .insert({
-                user_id: user.id,
-                excursion_id,
-                total_amount,
-                amount_paid: 0,
-                number_of_people,
-                currency: STRIPE_CONFIG.currency,
-                payment_type,
-                status: 'pending',
-                refund_status: 'none',
-                expires_at: expiresAt.toISOString(),
-            })
-            .select()
-            .single();
-
-        if (purchaseError || !purchase) {
-            console.error('Error creating purchase:', purchaseError);
-            return NextResponse.json(
-                { error: 'Error al crear la reserva' },
-                { status: 500 }
-            );
-        }
-
-        // Crear sesión de Stripe Checkout
+        // Crear sesión de Stripe Checkout con toda la información necesaria en metadata
+        // La compra se creará en el webhook cuando el pago sea exitoso
         const session = await stripe.checkout.sessions.create({
             payment_method_types: [...STRIPE_CONFIG.paymentMethodTypes],
             mode: STRIPE_CONFIG.mode,
@@ -110,24 +85,21 @@ export async function POST(request: NextRequest) {
                 },
             ],
             metadata: {
-                purchase_id: purchase.id.toString(),
                 user_id: user.id,
                 excursion_id: excursion_id.toString(),
                 payment_type,
+                total_amount: total_amount.toString(),
+                amount_to_pay: amount_to_pay.toString(),
+                number_of_people: number_of_people.toString(),
+                currency: STRIPE_CONFIG.currency,
+                expires_at: expiresAt.toISOString(),
             },
             ...getCheckoutUrls(excursion_id),
         });
 
-        // Actualizar la reserva con el session_id
-        await supabase
-            .from('purchases')
-            .update({ stripe_session_id: session.id })
-            .eq('id', purchase.id);
-
         return NextResponse.json({
             sessionId: session.id,
             url: session.url,
-            purchaseId: purchase.id,
         });
 
     } catch (error) {
