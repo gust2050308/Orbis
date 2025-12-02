@@ -82,7 +82,7 @@ export function ManualPaymentDialog({
                 </DialogHeader>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    <div>
+                    <div className='flex flex-col gap-2'>
                         <Label htmlFor="amount">Monto</Label>
                         <Input
                             id="amount"
@@ -100,7 +100,7 @@ export function ManualPaymentDialog({
                         </div>
                     </div>
 
-                    <div>
+                    <div className='flex flex-col gap-2'>
                         <Label htmlFor="payment_type">Tipo de Pago</Label>
                         <Select value={paymentType} onValueChange={(v) => setPaymentType(v as PaymentType)}>
                             <SelectTrigger>

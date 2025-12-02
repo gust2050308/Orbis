@@ -84,7 +84,7 @@ export function UserDetailSheet({
     };
 
     return (
-        <Sheet open={open} onOpenChange={onOpenChange}>
+        <Sheet  open={open} onOpenChange={onOpenChange}>
             <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
                 <SheetHeader>
                     <SheetTitle>Detalles del Usuario</SheetTitle>
@@ -93,7 +93,7 @@ export function UserDetailSheet({
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-6 mt-6">
+                <div className="space-y-6 mt-6 p-6">
                     {/* User Info Component Reused */}
                     <UserInfo />
 

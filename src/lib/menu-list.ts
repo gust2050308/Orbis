@@ -46,5 +46,13 @@ export const menuList: MenuItem[] = [
     title: 'Mis viajes',
     href: '/Views/MyJourneys',
     icon: Send,
+  },{
+    title: 'Compras',
+    href: '/Views/Admin/Purchases',
+    icon: FileText,
+  },{
+    title: 'Usuarios',
+    href: '/Views/Admin/Users',
+    icon: Users,
   }
 ];

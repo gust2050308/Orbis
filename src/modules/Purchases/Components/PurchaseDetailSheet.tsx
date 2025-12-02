@@ -118,7 +118,7 @@ export function PurchaseDetailSheet({
                     </SheetDescription>
                 </SheetHeader>
 
-                <div className="space-y-6 mt-6">
+                <div className="space-y-6 mt-6 px-6">
                     {/* Status & Info */}
                     <div className="grid grid-cols-2 gap-4">
                         <div>

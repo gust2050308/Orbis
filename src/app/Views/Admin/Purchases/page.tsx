@@ -3,12 +3,19 @@
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Loader2, ShoppingCart } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { PurchasesDataTable } from '@/modules/Purchases/Components/PurchasesDataTable';
 import { PurchaseDetailSheet } from '@/modules/Purchases/Components/PurchaseDetailSheet';
 import { ManualPaymentDialog } from '@/modules/Purchases/Components/ManualPaymentDialog';
-import type { AdminPurchase, PurchaseTableRow } from '@/modules/Purchases/types';
+import { ChangeStatusDialog } from '@/modules/Purchases/Components/ChangeStatusDialog';
+import { CancelPurchaseDialog } from '@/modules/Purchases/Components/CancelPurchaseDialog';
+import { RefundPurchaseDialog } from '@/modules/Purchases/Components/RefundPurchaseDialog';
+import { ExtendExpirationDialog } from '@/modules/Purchases/Components/ExtendExpirationDialog';
+import { DeletePurchaseDialog } from '@/modules/Purchases/Components/DeletePurchaseDialog';
+import type { AdminPurchase, PurchaseTableRow, PurchaseStatus } from '@/modules/Purchases/types';
 
 export default function AdminPurchasesPage() {
+    const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [purchases, setPurchases] = useState<PurchaseTableRow[]>([]);
 
@@ -20,6 +27,38 @@ export default function AdminPurchasesPage() {
     const [manualPaymentOpen, setManualPaymentOpen] = useState(false);
     const [manualPaymentPurchaseId, setManualPaymentPurchaseId] = useState<number | null>(null);
     const [manualPaymentRemaining, setManualPaymentRemaining] = useState(0);
+
+    // Dialog states
+    const [changeStatusOpen, setChangeStatusOpen] = useState(false);
+    const [changeStatusPurchaseId, setChangeStatusPurchaseId] = useState<number | null>(null);
+    const [changeStatusCurrent, setChangeStatusCurrent] = useState<PurchaseStatus | null>(null);
+
+    const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+    const [cancelPurchaseData, setCancelPurchaseData] = useState<{
+        id: number;
+        userName: string;
+        excursionTitle: string;
+    } | null>(null);
+
+    const [refundDialogOpen, setRefundDialogOpen] = useState(false);
+    const [refundPurchaseData, setRefundPurchaseData] = useState<{
+        id: number;
+        userName: string;
+        amountPaid: number;
+    } | null>(null);
+
+    const [extendDialogOpen, setExtendDialogOpen] = useState(false);
+    const [extendPurchaseData, setExtendPurchaseData] = useState<{
+        id: number;
+        expiresAt: string | null;
+    } | null>(null);
+
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deletePurchaseData, setDeletePurchaseData] = useState<{
+        id: number;
+        userName: string;
+        excursionTitle: string;
+    } | null>(null);
 
     useEffect(() => {
         fetchPurchases();
@@ -73,26 +112,44 @@ export default function AdminPurchasesPage() {
         setDetailOpen(true);
     };
 
-    const handleChangeStatus = async (id: number) => {
-        const newStatus = prompt('Nuevo estado (pending/reserved/paid/cancelled/refunded/expired):');
-        if (!newStatus) return;
+    const handleChangeStatus = (id: number) => {
+        const purchase = purchases.find(p => p.id === id);
+        if (!purchase) return;
 
+        setChangeStatusPurchaseId(id);
+        setChangeStatusCurrent(purchase.status);
+        setChangeStatusOpen(true);
+    };
+
+    const handleChangeStatusConfirm = async (purchaseId: number, newStatus: PurchaseStatus) => {
         try {
-            const response = await fetch(`/api/admin/purchases/${id}`, {
+            const response = await fetch(`/api/admin/purchases/${purchaseId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: newStatus }),
             });
 
             if (response.ok) {
-                alert('Estado actualizado');
+                toast({
+                    title: "Estado actualizado",
+                    description: `La compra #${purchaseId} ha sido actualizada.`,
+                });
                 fetchPurchases();
             } else {
-                alert('Error al actualizar estado');
+                const data = await response.json();
+                toast({
+                    title: "Error",
+                    description: data.error || 'Error al actualizar estado',
+                    variant: "destructive",
+                });
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al actualizar estado');
+            toast({
+                title: "Error",
+                description: 'Error al actualizar estado',
+                variant: "destructive",
+            });
         }
     };
 
@@ -105,33 +162,65 @@ export default function AdminPurchasesPage() {
         setManualPaymentOpen(true);
     };
 
-    const handleCancel = async (id: number) => {
-        if (!confirm(`¿Cancelar compra #${id}?`)) return;
+    const handleCancel = (id: number) => {
+        const purchase = purchases.find(p => p.id === id);
+        if (!purchase) return;
 
+        setCancelPurchaseData({
+            id,
+            userName: purchase.userName,
+            excursionTitle: purchase.excursionTitle,
+        });
+        setCancelDialogOpen(true);
+    };
+
+    const handleCancelConfirm = async (purchaseId: number) => {
         try {
-            const response = await fetch(`/api/admin/purchases/${id}`, {
+            const response = await fetch(`/api/admin/purchases/${purchaseId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ status: 'cancelled' }),
             });
 
             if (response.ok) {
-                alert('Compra cancelada');
+                toast({
+                    title: "Compra cancelada",
+                    description: `La compra #${purchaseId} ha sido cancelada exitosamente.`,
+                });
                 fetchPurchases();
             } else {
-                alert('Error al cancelar');
+                const data = await response.json();
+                toast({
+                    title: "Error",
+                    description: data.error || 'Error al cancelar',
+                    variant: "destructive",
+                });
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al cancelar');
+            toast({
+                title: "Error",
+                description: 'Error al cancelar la compra',
+                variant: "destructive",
+            });
         }
     };
 
-    const handleRefund = async (id: number) => {
-        if (!confirm(`¿Reembolsar compra #${id}?`)) return;
+    const handleRefund = (id: number) => {
+        const purchase = purchases.find(p => p.id === id);
+        if (!purchase) return;
 
+        setRefundPurchaseData({
+            id,
+            userName: purchase.userName,
+            amountPaid: purchase.amountPaid,
+        });
+        setRefundDialogOpen(true);
+    };
+
+    const handleRefundConfirm = async (purchaseId: number) => {
         try {
-            const response = await fetch(`/api/admin/purchases/${id}`, {
+            const response = await fetch(`/api/admin/purchases/${purchaseId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -141,58 +230,111 @@ export default function AdminPurchasesPage() {
             });
 
             if (response.ok) {
-                alert('Compra reembolsada');
+                toast({
+                    title: "Compra reembolsada",
+                    description: `La compra #${purchaseId} ha sido marcada como reembolsada.`,
+                });
                 fetchPurchases();
             } else {
-                alert('Error al reembolsar');
+                const data = await response.json();
+                toast({
+                    title: "Error",
+                    description: data.error || 'Error al reembolsar',
+                    variant: "destructive",
+                });
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al reembolsar');
+            toast({
+                title: "Error",
+                description: 'Error al procesar el reembolso',
+                variant: "destructive",
+            });
         }
     };
 
-    const handleExtendExpiration = async (id: number) => {
-        const newDate = prompt('Nueva fecha de expiración (YYYY-MM-DD HH:MM:SS):');
-        if (!newDate) return;
+    const handleExtendExpiration = (id: number) => {
+        const purchase = purchases.find(p => p.id === id);
+        if (!purchase) return;
 
+        setExtendPurchaseData({
+            id,
+            expiresAt: purchase.expiresAt,
+        });
+        setExtendDialogOpen(true);
+    };
+
+    const handleExtendExpirationConfirm = async (purchaseId: number, newExpiration: string) => {
         try {
-            const response = await fetch(`/api/admin/purchases/${id}`, {
+            const response = await fetch(`/api/admin/purchases/${purchaseId}`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ expires_at: newDate }),
+                body: JSON.stringify({ expires_at: newExpiration }),
             });
 
             if (response.ok) {
-                alert('Expiración extendida');
+                toast({
+                    title: "Expiración extendida",
+                    description: `La fecha de expiración ha sido actualizada.`,
+                });
                 fetchPurchases();
             } else {
-                alert('Error al extender expiración');
+                const data = await response.json();
+                toast({
+                    title: "Error",
+                    description: data.error || 'Error al extender expiración',
+                    variant: "destructive",
+                });
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al extender expiración');
+            toast({
+                title: "Error",
+                description: 'Error al extender la expiración',
+                variant: "destructive",
+            });
         }
     };
 
-    const handleDelete = async (id: number) => {
-        if (!confirm(`¿Eliminar compra #${id}? Solo si no tiene pagos.`)) return;
+    const handleDelete = (id: number) => {
+        const purchase = purchases.find(p => p.id === id);
+        if (!purchase) return;
 
+        setDeletePurchaseData({
+            id,
+            userName: purchase.userName,
+            excursionTitle: purchase.excursionTitle,
+        });
+        setDeleteDialogOpen(true);
+    };
+
+    const handleDeleteConfirm = async (purchaseId: number) => {
         try {
-            const response = await fetch(`/api/admin/purchases/${id}`, {
+            const response = await fetch(`/api/admin/purchases/${purchaseId}`, {
                 method: 'DELETE',
             });
 
             if (response.ok) {
-                alert('Compra eliminada');
+                toast({
+                    title: "Compra eliminada",
+                    description: `La compra #${purchaseId} ha sido eliminada permanentemente.`,
+                });
                 fetchPurchases();
             } else {
                 const data = await response.json();
-                alert(data.error || 'Error al eliminar');
+                toast({
+                    title: "Error al eliminar",
+                    description: data.error || 'No se pudo eliminar la compra',
+                    variant: "destructive",
+                });
             }
         } catch (error) {
             console.error('Error:', error);
-            alert('Error al eliminar');
+            toast({
+                title: "Error",
+                description: 'Error al eliminar la compra',
+                variant: "destructive",
+            });
         }
     };
 
@@ -353,6 +495,54 @@ export default function AdminPurchasesPage() {
                 purchaseId={manualPaymentPurchaseId}
                 remainingAmount={manualPaymentRemaining}
                 onSuccess={handleManualPaymentSuccess}
+            />
+
+            {/* Change Status Dialog */}
+            <ChangeStatusDialog
+                open={changeStatusOpen}
+                onOpenChange={setChangeStatusOpen}
+                purchaseId={changeStatusPurchaseId}
+                currentStatus={changeStatusCurrent}
+                onConfirm={handleChangeStatusConfirm}
+            />
+
+            {/* Cancel Purchase Dialog */}
+            <CancelPurchaseDialog
+                open={cancelDialogOpen}
+                onOpenChange={setCancelDialogOpen}
+                purchaseId={cancelPurchaseData?.id ?? null}
+                userName={cancelPurchaseData?.userName}
+                excursionTitle={cancelPurchaseData?.excursionTitle}
+                onConfirm={handleCancelConfirm}
+            />
+
+            {/* Refund Purchase Dialog */}
+            <RefundPurchaseDialog
+                open={refundDialogOpen}
+                onOpenChange={setRefundDialogOpen}
+                purchaseId={refundPurchaseData?.id ?? null}
+                userName={refundPurchaseData?.userName}
+                amountPaid={refundPurchaseData?.amountPaid}
+                onConfirm={handleRefundConfirm}
+            />
+
+            {/* Extend Expiration Dialog */}
+            <ExtendExpirationDialog
+                open={extendDialogOpen}
+                onOpenChange={setExtendDialogOpen}
+                purchaseId={extendPurchaseData?.id ?? null}
+                currentExpiration={extendPurchaseData?.expiresAt ?? null}
+                onConfirm={handleExtendExpirationConfirm}
+            />
+
+            {/* Delete Purchase Dialog */}
+            <DeletePurchaseDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                purchaseId={deletePurchaseData?.id ?? null}
+                userName={deletePurchaseData?.userName}
+                excursionTitle={deletePurchaseData?.excursionTitle}
+                onConfirm={handleDeleteConfirm}
             />
         </div>
     );

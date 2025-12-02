@@ -129,7 +129,7 @@ export function EditUserDialog({
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
+                        <div className='flex flex-col gap-2'>
                             <Label htmlFor="name">Nombre</Label>
                             <Input
                                 id="name"
@@ -138,7 +138,7 @@ export function EditUserDialog({
                                 required
                             />
                         </div>
-                        <div>
+                        <div className='flex flex-col gap-2'>
                             <Label htmlFor="last_name">Apellido</Label>
                             <Input
                                 id="last_name"
@@ -149,7 +149,7 @@ export function EditUserDialog({
                         </div>
                     </div>
 
-                    <div>
+                    <div className='flex flex-col gap-2'>
                         <Label htmlFor="phone">Teléfono</Label>
                         <Input
                             id="phone"
@@ -158,7 +158,7 @@ export function EditUserDialog({
                         />
                     </div>
 
-                    <div>
+                    <div className='flex flex-col gap-2'>
                         <Label htmlFor="role">Rol</Label>
                         <Select
                             value={formData.role}
@@ -175,7 +175,7 @@ export function EditUserDialog({
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
+                        <div className='flex flex-col gap-2'>
                             <Label htmlFor="country">País</Label>
                             <Input
                                 id="country"
@@ -183,7 +183,7 @@ export function EditUserDialog({
                                 onChange={(e) => setFormData({ ...formData, country: e.target.value })}
                             />
                         </div>
-                        <div>
+                        <div className='flex flex-col gap-2'>
                             <Label htmlFor="city">Ciudad</Label>
                             <Input
                                 id="city"
@@ -193,7 +193,7 @@ export function EditUserDialog({
                         </div>
                     </div>
 
-                    <div>
+                    <div className='flex flex-col gap-2'>
                         <Label htmlFor="address">Dirección</Label>
                         <Input
                             id="address"
