@@ -53,8 +53,9 @@ export default function ContentExcursion() {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        const isAdmin = userRole === 'admin';
         const [excursionsData, destinationsData] = await Promise.all([
-          getFilteredExcursions(filters, { page: currentPage, pageSize }),
+          getFilteredExcursions(filters, { page: currentPage, pageSize }, isAdmin),
           getAllDestinations()
         ])
         setExcursions(excursionsData.data)
@@ -75,7 +76,8 @@ export default function ContentExcursion() {
     setLoading(true)
     setCurrentPage(1) // Reset to first page when applying filters
     try {
-      const data = await getFilteredExcursions(filters, { page: 1, pageSize })
+      const isAdmin = userRole === 'admin';
+      const data = await getFilteredExcursions(filters, { page: 1, pageSize }, isAdmin)
       setExcursions(data.data)
       setTotal(data.total)
       setTotalPages(data.totalPages)
@@ -102,7 +104,8 @@ export default function ContentExcursion() {
     setCurrentPage(1)
     setLoading(true)
     try {
-      const data = await getFilteredExcursions(resetFilters, { page: 1, pageSize })
+      const isAdmin = userRole === 'admin';
+      const data = await getFilteredExcursions(resetFilters, { page: 1, pageSize }, isAdmin)
       setExcursions(data.data)
       setTotal(data.total)
       setTotalPages(data.totalPages)

@@ -72,6 +72,7 @@ export default function TravelLandingPage() {
   const [currentTestimonial, setCurrentTestimonial] = useState(0)
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [email, setEmail] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
 
   const testimonials = [
     {
@@ -186,16 +187,16 @@ export default function TravelLandingPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
-              onClick={() => {
-                router.push('/Views/Excursions');
-              }}
+                onClick={() => {
+                  router.push('/Views/Excursions');
+                }}
                 size="lg"
                 className="bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white px-8 py-6 text-lg rounded-xl shadow-2xl shadow-[#256EFF]/30 group"
               >
                 Explorar excursiones
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-  
+
             </div>
 
             {/* Stats destacadas */}
@@ -230,6 +231,13 @@ export default function TravelLandingPage() {
                   <Input
                     placeholder="¿A dónde quieres ir?"
                     className="pl-10 py-6 text-lg border-slate-200 focus:border-[#256EFF]"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && searchQuery.trim()) {
+                        router.push(`/Views/Excursions?search=${encodeURIComponent(searchQuery.trim())}`);
+                      }
+                    }}
                   />
                 </div>
                 <div className="relative">
@@ -239,10 +247,15 @@ export default function TravelLandingPage() {
                     className="pl-10 py-6 border-slate-200 focus:border-[#256EFF]"
                   />
                 </div>
-                <Button className="bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white px-8 py-6 text-lg" 
-                onClick={() => {
-                  router.push('/Views/Excursions');
-                }}
+                <Button
+                  className="bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white px-8 py-6 text-lg"
+                  onClick={() => {
+                    if (searchQuery.trim()) {
+                      router.push(`/Views/Excursions?search=${encodeURIComponent(searchQuery.trim())}`);
+                    } else {
+                      router.push('/Views/Excursions');
+                    }
+                  }}
                 >
                   Buscar
                 </Button>

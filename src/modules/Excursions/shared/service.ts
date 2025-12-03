@@ -129,7 +129,8 @@ export type PaginatedResponse<T> = {
 
 export async function getFilteredExcursions(
     filters: ExcursionFilters = {},
-    pagination: PaginationParams = {}
+    pagination: PaginationParams = {},
+    isAdmin: boolean = false
 ): Promise<PaginatedResponse<Excursion>> {
     const supabase = await createClient();
 
@@ -140,6 +141,18 @@ export async function getFilteredExcursions(
     const to = from + pageSize - 1;
 
     let query = supabase.from('excursions').select('*', { count: 'exact' });
+
+    // Apply automatic filters for non-admin users
+    if (!isAdmin) {
+        // Filter: Only show excursions with available seats
+        query = query.gt('available_seats', 0);
+
+        // Filter: Only show excursions starting more than 10 days from today
+        const minStartDate = new Date();
+        minStartDate.setDate(minStartDate.getDate() + 10);
+        const minStartDateStr = minStartDate.toISOString().split('T')[0];
+        query = query.gt('start_date', minStartDateStr);
+    }
 
     // Text search filter (title and description)
     if (filters.search && filters.search.trim()) {

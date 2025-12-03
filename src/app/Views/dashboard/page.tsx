@@ -1,4 +1,6 @@
-import { Suspense } from "react";
+'use client';
+
+import { Suspense, useEffect } from "react";
 import { KPICards } from "@/modules/Dashboard/components/KPICards";
 import { RevenueChart } from "@/modules/Dashboard/components/RevenueChart";
 import { TopDestinations } from "@/modules/Dashboard/components/TopDestinations";
@@ -13,6 +15,8 @@ import {
 } from "@/modules/Dashboard/services/dashboardService";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/Core/CustomHooks/useAuth";
+import { useRouter } from "next/navigation";
 
 // Loading components
 function KPISkeleton() {
@@ -85,6 +89,21 @@ async function DashboardContent() {
 }
 
 export default function DashboardPage() {
+
+  const { userRole, signOut } = useAuth();
+  const router = useRouter();
+
+  // Sign out non-admin users
+  useEffect(() => {
+    if (userRole === 'guest' || userRole === 'customer') {
+      signOut(); // This already redirects to '/'
+    }
+  }, [userRole, signOut]);
+
+  if (userRole !== 'admin') {
+    return <div>Acceso denegado. Redirigiendo...</div>;
+  }
+
   return (
     <div className="space-y-6 p-6">
       {/* Header */}
