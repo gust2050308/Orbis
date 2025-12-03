@@ -57,8 +57,8 @@ export function KPICards({ data }: KPICardsProps) {
     return (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {kpis.map((kpi, index) => (
-                <Card key={index} className="overflow-hidden hover:shadow-lg transition-shadow">
-                    <CardHeader className={`bg-gradient-to-r ${kpi.gradient} text-white pb-3`}>
+                <Card key={index} className="overflow-hidden pt-0 hover:shadow-lg transition-shadow">
+                    <CardHeader className={`bg-gradient-to-r ${kpi.gradient} pt-5 text-white pb-3`}>
                         <div className="flex items-center justify-between">
                             <CardTitle className="text-sm font-medium">{kpi.title}</CardTitle>
                             <kpi.icon className="h-5 w-5 opacity-80" />
