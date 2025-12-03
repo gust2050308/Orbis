@@ -382,7 +382,7 @@ export default function UserInfo() {
                         className="mt-3 border-blue-300 text-blue-700 hover:bg-blue-100"
                         onClick={() => setShowSetPasswordDialog(true)}
                       >
-                        Establecer Contraseña
+                        Establecer/Modificar Contraseña
                       </Button>
                     </div>
                   ) : (

@@ -27,7 +27,7 @@ export const menuList: MenuItem[] = [
     title: "Dashboard",
     href: "/Views/dashboard",
     icon: LayoutDashboard,
-    roles: ['admin', 'customer', 'employee'],
+    roles: ['admin'],
   },
   {
     title: "Destinos",
@@ -44,7 +44,7 @@ export const menuList: MenuItem[] = [
     title: 'Mis viajes',
     href: '/Views/MyJourneys',
     icon: Send,
-    roles: ['admin', 'customer', 'employee'],
+    roles: ['admin', 'customer'],
   }, {
     title: 'Compras',
     href: '/Views/Admin/Purchases',
@@ -55,5 +55,10 @@ export const menuList: MenuItem[] = [
     href: '/Views/Admin/Users',
     icon: Users,
     roles: ['admin'],
+  },{
+    title: 'Pagina Principal',
+    href: '/Views/landing',
+    icon: LayoutDashboard,
+    roles: ['customer' , 'guest'],
   }
 ];

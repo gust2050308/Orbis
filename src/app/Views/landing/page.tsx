@@ -186,19 +186,16 @@ export default function TravelLandingPage() {
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
               <Button
+              onClick={() => {
+                router.push('/Views/Excursions');
+              }}
                 size="lg"
                 className="bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white px-8 py-6 text-lg rounded-xl shadow-2xl shadow-[#256EFF]/30 group"
               >
                 Explorar excursiones
                 <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="px-8 py-6 text-lg rounded-xl border-2 border-[#256EFF] text-[#256EFF] hover:bg-[#256EFF]/5"
-              >
-                Ver ofertas especiales
-              </Button>
+  
             </div>
 
             {/* Stats destacadas */}
@@ -242,7 +239,11 @@ export default function TravelLandingPage() {
                     className="pl-10 py-6 border-slate-200 focus:border-[#256EFF]"
                   />
                 </div>
-                <Button className="bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white px-8 py-6 text-lg">
+                <Button className="bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:opacity-90 text-white px-8 py-6 text-lg" 
+                onClick={() => {
+                  router.push('/Views/Excursions');
+                }}
+                >
                   Buscar
                 </Button>
               </div>
@@ -366,6 +367,9 @@ export default function TravelLandingPage() {
               variant="outline"
               size="lg"
               className="border-2 border-[#256EFF] text-[#256EFF] hover:bg-[#256EFF]/5 px-8"
+              onClick={() => {
+                router.push('/Views/Excursions');
+              }}
             >
               Ver todas las excursiones
               <ArrowRight className="ml-2 h-5 w-5" />
@@ -512,23 +516,19 @@ export default function TravelLandingPage() {
             ¿Listo para tu próxima aventura?
           </h2>
           <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto">
-            Suscríbete a nuestro newsletter y recibe ofertas exclusivas,
+            Unete a nuestro y conoce ofertas exclusivas,
             descuentos especiales y las mejores recomendaciones de viaje.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto">
-            <Input
-              type="email"
-              placeholder="tu@email.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 py-6 text-lg bg-white/95 border-0"
-            />
+          <div className="flex flex-col items-center ">
             <Button
               size="lg"
               className="bg-white text-[#256EFF] hover:bg-white/90 px-8 py-6 text-lg font-semibold shadow-xl"
+              onClick={() => {
+                router.push('/Views/auth');
+              }}
             >
-              Suscribirme
+              Comenzar Aventura
             </Button>
           </div>
 

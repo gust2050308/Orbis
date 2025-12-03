@@ -28,6 +28,7 @@ import {
     CreditCard,
     CheckCircle2
 } from 'lucide-react'
+import { useAuth } from '@/Core/CustomHooks/useAuth'
 
 type DestinationWithImages = {
     id: number
@@ -54,6 +55,8 @@ export default function ExcursionDetailClient({ excursion }: ExcursionDetailClie
         ? Number(excursion.min_deposit)
         : null
 
+
+    const { isAuthenticated } = useAuth()
     useEffect(() => {
         const loadDestinationsAndImages = async () => {
             try {
@@ -108,7 +111,7 @@ export default function ExcursionDetailClient({ excursion }: ExcursionDetailClie
     return (
         <div className="min-h-screen bg-gradient-to-br from-[#F7F5FB] via-white to-[#E8F4F8]">
             {/* Header con botón de regreso */}
-            <div className="bg-white border-b border-[#256EFF]/10 sticky top-0 z-10 shadow-sm">
+            <div className="bg-white border-b border-[#256EFF]/10 sticky top-17 z-10 shadow-sm">
                 <div className="container mx-auto px-4 py-4">
                     <Button
                         variant="ghost"
@@ -256,11 +259,17 @@ export default function ExcursionDetailClient({ excursion }: ExcursionDetailClie
                                     {/* Botón de reserva */}
                                     <Button
                                         className="w-full bg-gradient-to-r from-[#256EFF] to-[#07BEB8] hover:from-[#1557d8] hover:to-[#06a89a] text-white font-semibold py-6 text-lg shadow-lg hover:shadow-xl transition-all"
-                                        onClick={() => setShowReservationDialog(true)}
+                                        onClick={() => {
+                                            if (!isAuthenticated) {
+                                                router.push('/Views/auth')
+                                            } else {
+                                                setShowReservationDialog(true)
+                                            }
+                                        }}
                                         disabled={Number(excursion.available_seats ?? 0) <= 0}
                                     >
                                         <CreditCard className="w-5 h-5 mr-2" />
-                                        {Number(excursion.available_seats ?? 0) <= 0 ? 'Sin lugares disponibles' : 'Reservar Ahora'}
+                                        {isAuthenticated ? Number(excursion.available_seats ?? 0) <= 0 ? 'Sin lugares disponibles' : 'Reservar Ahora' : 'Iniciar Sesión para reservar'}
                                     </Button>
 
                                     {/* Características incluidas */}

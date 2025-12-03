@@ -12,8 +12,16 @@ import {
 import { SidebarNav } from "./SidebarNav";
 import UserInfo from "@/modules/User/Views/UserInfo";
 import { LogoutButton } from "@/components/LogoutButton";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/Core/CustomHooks/useAuth";
+import { Button } from "@/components/ui/button";
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+
+
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
+
   return (
     <Sidebar className="" collapsible="icon" {...props}>
       {/* Header con logo */}
@@ -41,7 +49,16 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       {/* Footer con info de usuario */}
       <SidebarFooter className="border-t border-[#256EFF]/20 gap-2">
         <UserInfo />
-        <LogoutButton />
+
+        {isAuthenticated ? (
+          <LogoutButton />
+        ) : (
+          <div className='w-full flex items-center justify-center'>
+            <Button className="w-4/5" onClick={() => router.push('/Views/auth')}>Iniciar Sesión</Button>
+          </div>
+        )}
+
+
       </SidebarFooter>
 
       <SidebarRail />
