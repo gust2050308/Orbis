@@ -109,7 +109,7 @@ export default function CardExcursions({ excursions, onRefresh, isAdmin = false 
         {activeExcursions.map((exc) => (
           <Card
             key={exc.id}
-            className='group overflow-hidden hover:shadow-2xl transition-all duration-300 border-[#256EFF]/20 hover:border-[#256EFF]/40'
+            className='pt-0 group overflow-hidden hover:shadow-2xl transition-all duration-300 border-[#256EFF]/20 hover:border-[#256EFF]/40'
           >
             {/* Imagen de la excursión */}
             <div className="relative h-56 w-full overflow-hidden bg-gradient-to-br from-[#256EFF]/10 to-[#07BEB8]/10">

@@ -15,20 +15,35 @@ import {
 } from "@/components/ui/sidebar";
 import {
     Collapsible,
-    CollapsibleContent, 
+    CollapsibleContent,
     CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { Badge } from "@/components/ui/badge";
 import { menuList, MenuItem } from "@/lib/menu-list";
+import { useAuth } from '@/Core/CustomHooks/useAuth';
 
 export function SidebarNav() {
     const pathname = usePathname();
+    const { userRole, isAuthenticated } = useAuth();
+
+    // Determinar el rol efectivo del usuario
+    const effectiveRole = isAuthenticated ? (userRole || 'customer') : 'guest';
+
+    // Filtrar menú según roles permitidos
+    const filteredMenu = menuList.filter(item => {
+        // Si no tiene roles definidos, es visible para todos
+        if (!item.roles || item.roles.length === 0) {
+            return true;
+        }
+        // Verificar si el rol del usuario está en los roles permitidos
+        return item.roles.includes(effectiveRole);
+    });
 
     return (
         <SidebarGroup>
             <SidebarGroupContent>
                 <SidebarMenu>
-                    {menuList.map((item) => {
+                    {filteredMenu.map((item) => {
                         const isActive = pathname === item.href ||
                             pathname.startsWith(item.href);
 

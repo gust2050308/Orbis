@@ -14,6 +14,7 @@ export interface MenuItem {
   icon: any;
   badge?: string;
   subItems?: SubMenuItem[];
+  roles?: ('admin' | 'customer' | 'employee' | 'guest')[];
 }
 
 export interface SubMenuItem {
@@ -26,11 +27,13 @@ export const menuList: MenuItem[] = [
     title: "Dashboard",
     href: "/Views/dashboard",
     icon: LayoutDashboard,
+    roles: ['admin', 'customer', 'employee'],
   },
   {
     title: "Destinos",
     href: "/Views/destinations",
     icon: MapPin,
+    roles: ['admin'],
   },
   {
     title: "Excursiones",
@@ -41,13 +44,16 @@ export const menuList: MenuItem[] = [
     title: 'Mis viajes',
     href: '/Views/MyJourneys',
     icon: Send,
-  },{
+    roles: ['admin', 'customer', 'employee'],
+  }, {
     title: 'Compras',
     href: '/Views/Admin/Purchases',
     icon: FileText,
-  },{
+    roles: ['admin'],
+  }, {
     title: 'Usuarios',
     href: '/Views/Admin/Users',
     icon: Users,
+    roles: ['admin'],
   }
 ];
