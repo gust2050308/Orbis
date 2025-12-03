@@ -5,7 +5,7 @@ export type UserProfile = {
     name: string;
     last_name: string;
     phone: string;
-    role: 'customer' | 'admin' | 'employee';
+    role: 'customer' | 'admin' | 'guest';
     profile_image: string | null;
     country: string;
     city: string;
@@ -20,7 +20,7 @@ export type AuthContextType = {
     session: Session | null
     loading: boolean
     userProfile: UserProfile | null
-    userRole: 'customer' | 'admin' | 'employee' | null
+    userRole: 'customer' | 'admin' | 'guest' | null
 
     // Métodos de autenticación
     signIn: (email: string, password: string) => Promise<void>

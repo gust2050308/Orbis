@@ -14,7 +14,7 @@ export interface MenuItem {
   icon: any;
   badge?: string;
   subItems?: SubMenuItem[];
-  roles?: ('admin' | 'customer' | 'employee' | 'guest')[];
+  roles?: ('admin' | 'customer' | 'guest')[];
 }
 
 export interface SubMenuItem {

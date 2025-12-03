@@ -148,7 +148,7 @@ export async function getTopDestinations(limit: number = 5): Promise<TopDestinat
             .select(`
         id,
         name,
-        excursions_destinations!inner(
+        excursion_destinations!inner(
           excursion:excursions!inner(
             purchases(count)
           )
@@ -161,7 +161,7 @@ export async function getTopDestinations(limit: number = 5): Promise<TopDestinat
         const destinationMap = new Map<number, { id: number; name: string; reservations: number }>();
 
         data?.forEach((dest: any) => {
-            const reservations = dest.excursions_destinations?.reduce((total: number, ed: any) => {
+            const reservations = dest.excursion_destinations?.reduce((total: number, ed: any) => {
                 return total + (ed.excursion?.purchases?.[0]?.count || 0);
             }, 0) || 0;
 
@@ -178,6 +178,8 @@ export async function getTopDestinations(limit: number = 5): Promise<TopDestinat
             .slice(0, limit);
     } catch (error) {
         console.error('Error fetching top destinations:', error);
+        console.error('Error message:', error instanceof Error ? error.message : String(error));
+        console.error('Error details:', JSON.stringify(error, null, 2));
         return [];
     }
 }
@@ -194,7 +196,6 @@ export async function getTopExcursions(limit: number = 5): Promise<TopExcursion[
             .select(`
         id,
         title,
-        max_seats,
         available_seats,
         purchases(
           id,
@@ -208,9 +209,9 @@ export async function getTopExcursions(limit: number = 5): Promise<TopExcursion[
         const result: TopExcursion[] = excursionsData?.map((exc: any) => {
             const sales = exc.purchases?.length || 0;
             const revenue = exc.purchases?.reduce((sum: number, p: any) => sum + (p.amount_paid || 0), 0) || 0;
-            const occupancy = exc.max_seats > 0
-                ? Math.round(((exc.max_seats - exc.available_seats) / exc.max_seats) * 100)
-                : 0;
+            // Since we don't have max_seats or seats per purchase, we can't calculate accurate occupancy
+            // Set to 0 or calculate based on available data if needed
+            const occupancy = 0;
 
             return {
                 id: exc.id,
@@ -225,6 +226,8 @@ export async function getTopExcursions(limit: number = 5): Promise<TopExcursion[
         return result.sort((a, b) => b.sales - a.sales).slice(0, limit);
     } catch (error) {
         console.error('Error fetching top excursions:', error);
+        console.error('Error message:', error instanceof Error ? error.message : String(error));
+        console.error('Error details:', JSON.stringify(error, null, 2));
         return [];
     }
 }
@@ -243,7 +246,6 @@ export async function getUpcomingExcursions(): Promise<UpcomingExcursion[]> {
         start_date,
         title,
         available_seats,
-        max_seats,
         status,
         purchases(count)
       `)
@@ -253,17 +255,27 @@ export async function getUpcomingExcursions(): Promise<UpcomingExcursion[]> {
 
         if (error) throw error;
 
-        return data?.map((exc: any) => ({
-            id: exc.id,
-            date: exc.start_date,
-            title: exc.title,
-            availableSeats: exc.available_seats || 0,
-            totalSeats: exc.max_seats || 0,
-            status: exc.status,
-            reservations: exc.purchases?.[0]?.count || 0,
-        })) || [];
+        return data?.map((exc: any) => {
+            const reservations = exc.purchases?.[0]?.count || 0;
+            const availableSeats = exc.available_seats || 0;
+            // Since we don't track seats per purchase, use available_seats as totalSeats
+            // This will need to be updated if you add max_seats to your schema
+            const totalSeats = availableSeats;
+
+            return {
+                id: exc.id,
+                date: exc.start_date,
+                title: exc.title,
+                availableSeats,
+                totalSeats,
+                status: exc.status,
+                reservations,
+            };
+        }) || [];
     } catch (error) {
         console.error('Error fetching upcoming excursions:', error);
+        console.error('Error message:', error instanceof Error ? error.message : String(error));
+        console.error('Error details:', JSON.stringify(error, null, 2));
         return [];
     }
 }
