@@ -70,9 +70,10 @@ export default function ResetPasswordPage() {
             setTimeout(() => {
                 router.push('/Views/auth');
             }, 1500);
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error:', error);
-            toast.error(error.message || 'Error al actualizar la contraseña');
+            const errorMessage = error instanceof Error ? error.message : 'Error al actualizar la contraseña';
+            toast.error(errorMessage);
         } finally {
             setLoading(false);
         }

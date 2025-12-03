@@ -80,9 +80,10 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
             toast.success('Inicio de sesión exitoso')
             router.push('/Views/dashboard')
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error en signIn:', error)
-            toast.error(error.message || 'Error al iniciar sesión')
+            const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión'
+            toast.error(errorMessage)
             throw error
         } finally {
             setIsLoading(false)
@@ -106,9 +107,10 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
             toast.success('¡Cuenta creada! Revisa tu correo para confirmar.')
             router.push('/Views/dashboard')
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error en signUp:', error)
-            toast.error(error.message || 'Error al crear cuenta')
+            const errorMessage = error instanceof Error ? error.message : 'Error al crear cuenta'
+            toast.error(errorMessage)
             throw error
         } finally {
             setIsLoading(false)
@@ -136,9 +138,10 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             if (data?.url) {
                 window.location.href = data.url
             }
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error en signInWithGoogle:', error)
-            toast.error(error.message || 'Error al iniciar con Google')
+            const errorMessage = error instanceof Error ? error.message : 'Error al iniciar con Google'
+            toast.error(errorMessage)
             setIsLoading(false)
             throw error
         }
@@ -154,9 +157,10 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
 
             toast.success('Sesión cerrada exitosamente')
             router.push('/')
-        } catch (error: any) {
+        } catch (error) {
             console.error('Error en signOut:', error)
-            toast.error(error.message || 'Error al cerrar sesión')
+            const errorMessage = error instanceof Error ? error.message : 'Error al cerrar sesión'
+            toast.error(errorMessage)
             throw error
         } finally {
             setIsLoading(false)

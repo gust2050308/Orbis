@@ -6,6 +6,9 @@ import Stripe from 'stripe';
 // Configuración para recibir el body raw
 export const runtime = 'nodejs';
 
+// Tipo para el cliente de Supabase
+type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+
 export async function POST(request: NextRequest) {
     const body = await request.text();
     const signature = request.headers.get('stripe-signature');
@@ -73,7 +76,7 @@ export async function POST(request: NextRequest) {
 // Handler para cuando se completa el checkout
 async function handleCheckoutCompleted(
     session: Stripe.Checkout.Session,
-    supabase: any
+    supabase: SupabaseClient
 ) {
     const metadata = session.metadata;
     const paymentType = metadata?.payment_type;
@@ -205,7 +208,7 @@ async function handleCheckoutCompleted(
 // Handler para cuando el pago es exitoso
 async function handlePaymentSucceeded(
     paymentIntent: Stripe.PaymentIntent,
-    supabase: any
+    supabase: SupabaseClient
 ) {
     // Buscar la reserva por payment_intent
     const { data: purchase } = await supabase
@@ -225,7 +228,7 @@ async function handlePaymentSucceeded(
 // Handler para cuando se hace un reembolso
 async function handleChargeRefunded(
     charge: Stripe.Charge,
-    supabase: any
+    supabase: SupabaseClient
 ) {
     // Buscar la reserva
     const { data: purchase } = await supabase

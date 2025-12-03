@@ -5,13 +5,14 @@ import {
   Settings,
   Users,
   FileText,
-  Send
+  Send,
+  type LucideIcon
 } from "lucide-react";
 
 export interface MenuItem {
   title: string;
   href: string;
-  icon: any;
+  icon: LucideIcon;
   badge?: string;
   subItems?: SubMenuItem[];
   roles?: ('admin' | 'customer' | 'guest')[];
@@ -45,20 +46,23 @@ export const menuList: MenuItem[] = [
     href: '/Views/MyJourneys',
     icon: Send,
     roles: ['admin', 'customer'],
-  }, {
+  },
+  {
     title: 'Compras',
     href: '/Views/Admin/Purchases',
     icon: FileText,
     roles: ['admin'],
-  }, {
+  },
+  {
     title: 'Usuarios',
     href: '/Views/Admin/Users',
     icon: Users,
     roles: ['admin'],
-  },{
+  },
+  {
     title: 'Pagina Principal',
     href: '/Views/landing',
     icon: LayoutDashboard,
-    roles: ['customer' , 'guest'],
+    roles: ['customer', 'guest'],
   }
 ];
