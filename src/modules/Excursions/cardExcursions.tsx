@@ -230,16 +230,16 @@ export default function CardExcursions({ excursions, onRefresh, isAdmin = false 
 
       <ModalExcursionDetails
         open={openDetailsModal}
-        onOpenChange={setOpenDetailsModal}
-        excursion={selectedExcursion}
-        onEdit={handleEdit}
-      />
+          onOpenChange={setOpenDetailsModal}
+          excursion={selectedExcursion}
+          onEdit={handleEdit}
+        />
 
-      <ModalExcursionUpdate
-        open={openEditModal}
-        onOpenChange={setOpenEditModal}
-        excursion={selectedExcursion}
-      />
-    </>
-  )
+        <ModalExcursionUpdate
+          open={openEditModal}
+          onOpenChange={setOpenEditModal}
+          excursion={selectedExcursion}
+        />
+      </>
+      )
 }

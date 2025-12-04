@@ -17,11 +17,13 @@ import { getAllDestinations } from './shared/serviceDestinations'
 import { addDestinationsToExcursion } from './shared/serviceExcursionsDestinations'
 import type { Excursion } from './shared/dtoExcursion'
 import type { Destination } from './shared/serviceDestinations'
-import { useRouter } from 'next/navigation'
 import DatatableExcursionDestinations from './datatableExcrusionDestinations'
 
-export default function ModalExcursionCreate() {
-    const router = useRouter()
+interface ModalExcursionCreateProps {
+    onSuccess?: () => void
+}
+
+export default function ModalExcursionCreate({ onSuccess }: ModalExcursionCreateProps = {}) {
     const [open, setOpen] = useState(false)
     const [loading, setLoading] = useState(false)
     const [loadingDestinations, setLoadingDestinations] = useState(false)
@@ -99,7 +101,7 @@ export default function ModalExcursionCreate() {
             }
 
             const excursion = await createExcurtions(excursionData)
-            
+
             if (!excursion?.id) {
                 throw new Error('No se obtuvo ID de la excursión')
             }
@@ -128,7 +130,7 @@ export default function ModalExcursionCreate() {
             setTimeout(() => {
                 setOpen(false)
                 setSuccess(false)
-                router.refresh()
+                onSuccess?.()
             }, 1500)
 
         } catch (err) {
@@ -158,7 +160,7 @@ export default function ModalExcursionCreate() {
                         {/* Información básica */}
                         <div className="space-y-4">
                             <h3 className="font-semibold text-lg">Información Básica</h3>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="title">Título *</Label>
@@ -213,7 +215,7 @@ export default function ModalExcursionCreate() {
                                     </p>
                                 </div>
                             </div>
-                            <DatatableExcursionDestinations 
+                            <DatatableExcursionDestinations
                                 destinations={destinations}
                                 loading={loadingDestinations}
                                 onSelectionChange={setSelectedDestinations}
@@ -223,7 +225,7 @@ export default function ModalExcursionCreate() {
                         {/* Información adicional */}
                         <div className="space-y-4 border-t pt-6">
                             <h3 className="font-semibold text-lg">Información Adicional</h3>
-                            
+
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
                                     <Label htmlFor="min_deposit">Depósito Mínimo</Label>
@@ -315,8 +317,8 @@ export default function ModalExcursionCreate() {
                             >
                                 Cancelar
                             </Button>
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 disabled={loading || selectedDestinations.length === 0}
                             >
                                 {loading ? 'Guardando...' : 'Guardar Excursión'}

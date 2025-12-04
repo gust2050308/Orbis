@@ -120,11 +120,10 @@ export const columns: ColumnDef<ExcursionDestinationRow>[] = [
     cell: ({ row }) => {
       const isActive = row.getValue("is_active")
       return (
-        <span className={`px-2 py-1 rounded text-xs font-medium ${
-          isActive 
-            ? "bg-green-100 text-green-800" 
+        <span className={`px-2 py-1 rounded text-xs font-medium ${isActive
+            ? "bg-green-100 text-green-800"
             : "bg-red-100 text-red-800"
-        }`}>
+          }`}>
           {isActive ? "Activo" : "Inactivo"}
         </span>
       )
@@ -151,7 +150,7 @@ export const columns: ColumnDef<ExcursionDestinationRow>[] = [
             >
               Copiar nombre
             </DropdownMenuItem>
-            <DropdownMenuItem 
+            <DropdownMenuItem
               className="text-red-600 cursor-pointer"
             >
               <Trash2 className="mr-2 h-4 w-4" />
@@ -177,290 +176,298 @@ interface DatatableExcursionDestinationsUpdateHandle {
 }
 
 const DatatableExcursionDestinationsUpdate = React.forwardRef<DatatableExcursionDestinationsUpdateHandle, DatatableExcursionDestinationsUpdateProps>(
-({ 
-  destinations = [],
-  loading = false,
-}, ref) => {
-  const [sorting, setSorting] = React.useState<SortingState>([])
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [localDestinations, setLocalDestinations] = React.useState(destinations)
-  const [hasChanges, setHasChanges] = React.useState(false)
+  ({
+    destinations = [],
+    loading = false,
+  }, ref) => {
+    const [sorting, setSorting] = React.useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+    const [rowSelection, setRowSelection] = React.useState({})
+    const [localDestinations, setLocalDestinations] = React.useState(destinations)
+    const [hasChanges, setHasChanges] = React.useState(false)
 
-  React.useEffect(() => {
-    setLocalDestinations(destinations)
-    setHasChanges(false)
-  }, [destinations])
-
-  const table = useReactTable({
-    data: localDestinations,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-    },
-  })
-
-  // Mover fila hacia arriba
-  const moveRowUp = (index: number) => {
-    if (index === 0) return
-    const newDestinations: ExcursionDestinationRow[] = [...localDestinations]
-    const temp = newDestinations[index - 1]
-    newDestinations[index - 1] = newDestinations[index]
-    newDestinations[index] = temp
-    
-    newDestinations.forEach((dest, idx) => {
-      dest.order_index = idx
-    })
-    
-    setLocalDestinations(newDestinations)
-    setHasChanges(true)
-  }
-
-  // Mover fila hacia abajo
-  const moveRowDown = (index: number) => {
-    if (index === localDestinations.length - 1) return
-    const newDestinations: ExcursionDestinationRow[] = [...localDestinations]
-    const temp = newDestinations[index]
-    newDestinations[index] = newDestinations[index + 1]
-    newDestinations[index + 1] = temp
-    
-    newDestinations.forEach((dest, idx) => {
-      dest.order_index = idx
-    })
-    
-    setLocalDestinations(newDestinations)
-    setHasChanges(true)
-  }
-
-  // Eliminar destino solo del local state (no guardar aún)
-  const handleDeleteDestination = (destinationId: number) => {
-    if (!window.confirm('¿Estás seguro de que deseas eliminar este destino?')) {
-      return
-    }
-
-    const updatedDestinations = localDestinations
-      .filter((dest) => dest.id !== destinationId)
-      .map((dest, index) => ({
-        ...dest,
-        order_index: index,
-      }))
-    
-    setLocalDestinations(updatedDestinations)
-    setHasChanges(true)
-  }
-
-  // Función para obtener los cambios (será llamada desde el modal)
-  React.useImperativeHandle(ref, () => ({
-    getChanges: () => ({
-      destinationOrders: localDestinations.map((dest) => ({
-        destinationId: dest.id,
-        orderIndex: dest.order_index || 0,
-      })),
-      deletedDestinations: destinations
-        .filter(d => !localDestinations.some(ld => ld.id === d.id))
-        .map(d => d.id),
-      hasChanges
-    }),
-    resetChanges: () => {
+    React.useEffect(() => {
       setLocalDestinations(destinations)
       setHasChanges(false)
+    }, [destinations])
+
+    const table = useReactTable({
+      data: localDestinations,
+      columns,
+      onSortingChange: setSorting,
+      onColumnFiltersChange: setColumnFilters,
+      getCoreRowModel: getCoreRowModel(),
+      getPaginationRowModel: getPaginationRowModel(),
+      getSortedRowModel: getSortedRowModel(),
+      getFilteredRowModel: getFilteredRowModel(),
+      onColumnVisibilityChange: setColumnVisibility,
+      onRowSelectionChange: setRowSelection,
+      state: {
+        sorting,
+        columnFilters,
+        columnVisibility,
+        rowSelection,
+      },
+    })
+
+    // Mover fila hacia arriba
+    const moveRowUp = (index: number) => {
+      if (index === 0) return
+      const newDestinations: ExcursionDestinationRow[] = [...localDestinations]
+      const temp = newDestinations[index - 1]
+      newDestinations[index - 1] = newDestinations[index]
+      newDestinations[index] = temp
+
+      newDestinations.forEach((dest, idx) => {
+        dest.order_index = idx
+      })
+
+      setLocalDestinations(newDestinations)
+      setHasChanges(true)
     }
-  }))
 
-  if (loading) {
-    return <div className="text-center py-8 text-muted-foreground">Cargando destinos...</div>
-  }
+    // Mover fila hacia abajo
+    const moveRowDown = (index: number) => {
+      if (index === localDestinations.length - 1) return
+      const newDestinations: ExcursionDestinationRow[] = [...localDestinations]
+      const temp = newDestinations[index]
+      newDestinations[index] = newDestinations[index + 1]
+      newDestinations[index + 1] = temp
 
-  return (
-    <div className="w-full space-y-4">
-      {/* Filtro */}
-      <div className="flex items-center gap-2">
-        <Input
-          placeholder="Buscar por nombre o país..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-          onChange={(event) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
-          }
-          className="max-w-sm"
-        />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              Columnas <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id}
-                  </DropdownMenuCheckboxItem>
-                )
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      newDestinations.forEach((dest, idx) => {
+        dest.order_index = idx
+      })
 
-      {/* Mensajes */}
-      {hasChanges && (
-        <div className="p-3 bg-amber-100 text-amber-700 rounded text-sm border border-amber-300 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4" />
-          Tienes cambios sin guardar - serán guardados al hacer clic en Guardar Cambios del modal
-        </div>
-      )}
+      setLocalDestinations(newDestinations)
+      setHasChanges(true)
+    }
 
-      {/* Tabla */}
-      <div className="rounded-md border overflow-hidden">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
+    // Eliminar destino solo del local state (no guardar aún)
+    const handleDeleteDestination = (destinationId: number) => {
+      if (!window.confirm('¿Estás seguro de que deseas eliminar este destino?')) {
+        return
+      }
+
+      const updatedDestinations = localDestinations
+        .filter((dest) => dest.id !== destinationId)
+        .map((dest, index) => ({
+          ...dest,
+          order_index: index,
+        }))
+
+      setLocalDestinations(updatedDestinations)
+      setHasChanges(true)
+    }
+
+    // Función para obtener los cambios (será llamada desde el modal)
+    React.useImperativeHandle(ref, () => ({
+      getChanges: () => ({
+        destinationOrders: localDestinations.map((dest) => ({
+          destinationId: dest.id,
+          orderIndex: dest.order_index || 0,
+        })),
+        deletedDestinations: destinations
+          .filter(d => !localDestinations.some(ld => ld.id === d.id))
+          .map(d => d.id),
+        hasChanges
+      }),
+      resetChanges: () => {
+        setLocalDestinations(destinations)
+        setHasChanges(false)
+      }
+    }))
+
+    if (loading) {
+      return <div className="text-center py-8 text-muted-foreground">Cargando destinos...</div>
+    }
+
+    return (
+      <div className="w-full space-y-4">
+        {/* Filtro */}
+        <div className="flex items-center gap-2">
+          <Input
+            placeholder="Buscar por nombre o país..."
+            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+            onChange={(event) =>
+              table.getColumn("name")?.setFilterValue(event.target.value)
+            }
+            className="max-w-sm"
+          />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="ml-auto">
+                Columnas <ChevronDown className="ml-2 h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {table
+                .getAllColumns()
+                .filter((column) => column.getCanHide())
+                .map((column) => {
                   return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
+                    <DropdownMenuCheckboxItem
+                      key={column.id}
+                      className="capitalize"
+                      checked={column.getIsVisible()}
+                      onCheckedChange={(value) =>
+                        column.toggleVisibility(!!value)
+                      }
+                    >
+                      {column.id}
+                    </DropdownMenuCheckboxItem>
+                  )
+                })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+
+        {/* Mensajes */}
+        {hasChanges && (
+          <div className="p-3 bg-amber-100 text-amber-700 rounded text-sm border border-amber-300 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            Tienes cambios sin guardar - serán guardados al hacer clic en Guardar Cambios del modal
+          </div>
+        )}
+
+        {/* Tabla */}
+        <div className="rounded-md border overflow-hidden">
+          <Table>
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
                             header.column.columnDef.header,
                             header.getContext()
                           )}
-                    </TableHead>
-                  )
-                })}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, index) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-gray-50 transition"
-                >
-                  {row.getVisibleCells().map((cell) => {
-                    // Agregar botones de movimiento en la columna de orden
-                    if (cell.column.id === "order") {
-                      return (
-                        <TableCell key={cell.id}>
-                          <div className="flex flex-col gap-1">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => moveRowUp(index)}
-                              disabled={index === 0}
-                              className="h-6 text-xs"
-                            >
-                              ↑
-                            </Button>
-                            <span className="text-center font-semibold">
-                              {(row.original.order_index || 0) + 1}
-                            </span>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => moveRowDown(index)}
-                              disabled={index === localDestinations.length - 1}
-                              className="h-6 text-xs"
-                            >
-                              ↓
-                            </Button>
-                          </div>
-                        </TableCell>
-                      )
-                    }
-
-                    // Agregar botón eliminar en la columna de acciones
-                    if (cell.column.id === "actions") {
-                      return (
-                        <TableCell key={cell.id}>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleDeleteDestination(row.original.id)}
-                            className="h-8"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
-                      )
-                    }
-
-                    return (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
+                      </TableHead>
                     )
                   })}
                 </TableRow>
-              ))
-            ) : (
-              <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center text-muted-foreground"
-                >
-                  No hay destinos registrados.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row, index) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                    className="hover:bg-gray-50 transition"
+                  >
+                    {row.getVisibleCells().map((cell) => {
+                      // Agregar botones de movimiento en la columna de orden
+                      if (cell.column.id === "order") {
+                        return (
+                          <TableCell key={cell.id}>
+                            <div className="flex flex-col gap-1">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveRowUp(index);
+                                }}
+                                disabled={index === 0}
+                                className="h-6 text-xs"
+                              >
+                                ↑
+                              </Button>
+                              <span className="text-center font-semibold">
+                                {(row.original.order_index || 0) + 1}
+                              </span>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  moveRowDown(index);
+                                }}
+                                disabled={index === localDestinations.length - 1}
+                                className="h-6 text-xs"
+                              >
+                                ↓
+                              </Button>
+                            </div>
+                          </TableCell>
+                        )
+                      }
 
-      {/* Paginación */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          {table.getFilteredSelectedRowModel().rows.length} de{" "}
-          {table.getFilteredRowModel().rows.length} fila(s) seleccionada(s)
+                      // Agregar botón eliminar en la columna de acciones
+                      if (cell.column.id === "actions") {
+                        return (
+                          <TableCell key={cell.id}>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleDeleteDestination(row.original.id)}
+                              className="h-8"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        )
+                      }
+
+                      return (
+                        <TableCell key={cell.id}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      )
+                    })}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-24 text-center text-muted-foreground"
+                  >
+                    No hay destinos registrados.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
-        <div className="space-x-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Anterior
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Siguiente
-          </Button>
+
+        {/* Paginación */}
+        <div className="flex items-center justify-between">
+          <div className="text-sm text-muted-foreground">
+            {table.getFilteredSelectedRowModel().rows.length} de{" "}
+            {table.getFilteredRowModel().rows.length} fila(s) seleccionada(s)
+          </div>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              Anterior
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              Siguiente
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 )
 
 DatatableExcursionDestinationsUpdate.displayName = 'DatatableExcursionDestinationsUpdate'

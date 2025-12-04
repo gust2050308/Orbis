@@ -138,6 +138,21 @@ export default function ContentExcursion() {
     }
   }
 
+  const refreshExcursions = async () => {
+    setLoading(true)
+    try {
+      const isAdmin = userRole === 'admin'
+      const data = await getFilteredExcursions(filters, { page: currentPage, pageSize }, isAdmin)
+      setExcursions(data.data)
+      setTotal(data.total)
+      setTotalPages(data.totalPages)
+    } catch (error) {
+      console.error('Error refreshing excursions:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   if (loading) return <div className="px-4 py-8 text-center">Cargando...</div>
 
   const isAdmin = userRole === 'admin'
@@ -171,7 +186,7 @@ export default function ContentExcursion() {
         </div>
         {isAdmin && (
           <div className='w-auto'>
-            <ModalExcursionCreate />
+            <ModalExcursionCreate onSuccess={refreshExcursions} />
           </div>
         )}
       </div>

@@ -1,0 +1,24 @@
+--- a/src/modules/Excursions/modalExcursionCreate.tsx
++++ b/src/modules/Excursions/modalExcursionCreate.tsx
+@@ -17,9 +17,12 @@ import { getAllDestinations } from './shared/serviceDestinations'
+ import { addDestinationsToExcursion } from './shared/serviceExcursionsDestinations'
+ import type { Excursion } from './shared/dtoExcursion'
+ import type { Destination } from './shared/serviceDestinations'
+-import { useRouter } from 'next/navigation'
+ import DatatableExcursionDestinations from './datatableExcrusionDestinations'
+ 
+-export default function ModalExcursionCreate() {
+-    const router = useRouter()
++interface ModalExcursionCreateProps {
++  onSuccess?: () => void
++}
++
++export default function ModalExcursionCreate({ onSuccess }: ModalExcursionCreateProps = {}) {
+     const [open, setOpen] = useState(false)
+@@ -128,7 +131,7 @@ export default function ModalExcursionCreate() {
+             setTimeout(() => {
+                 setOpen(false)
+                 setSuccess(false)
+-                router.refresh()
++                onSuccess?.()
+             }, 1500)
