@@ -11,9 +11,9 @@ export default function ReservationSuccessPage() {
     const sessionId = searchParams.get('session_id')
 
     useEffect(() => {
-        // Redirigir a la página de reservaciones con el parámetro de éxito
+        // Redirigir a la página de MyJourneys con el parámetro de éxito
         const timer = setTimeout(() => {
-            router.push(`/reservations?success=true${sessionId ? `&session_id=${sessionId}` : ''}`);
+            router.push(`/Views/MyJourneys?success=true${sessionId ? `&session_id=${sessionId}` : ''}`);
         }, 1500);
 
         return () => clearTimeout(timer);

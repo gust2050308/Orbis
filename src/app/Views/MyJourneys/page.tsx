@@ -27,7 +27,7 @@ export default function ReservationsPage() {
             setShowSuccess(true);
             // Limpiar query params después de mostrar
             const timer = setTimeout(() => {
-                router.replace('/reservations', { scroll: false });
+                router.replace('/Views/MyJourneys', { scroll: false });
             }, 500);
             return () => clearTimeout(timer);
         }
@@ -45,20 +45,25 @@ export default function ReservationsPage() {
             const data = await response.json();
 
             // Transformar datos para la tabla
-            const tableData: ReservationTableRow[] = (data.reservations || []).map((res: ReservationWithExcursion) => ({
-                id: res.id,
-                excursionTitle: res.excursion?.title || 'Sin título',
-                excursionId: res.excursion_id,
-                startDate: res.excursion?.start_date || '',
-                endDate: res.excursion?.end_date || '',
-                numberOfPeople: res.number_of_people || 1,
-                totalAmount: res.total_amount,
-                amountPaid: res.amount_paid,
-                status: res.status,
-                paymentType: res.payment_type,
-                expiresAt: res.expires_at,
-                image: res.excursion?.images?.[0]?.url,
-            }));
+            const tableData: ReservationTableRow[] = (data.reservations || []).map((res: ReservationWithExcursion) => {
+                // Extraer la primera imagen del primer destino
+                const firstImage = res.excursion?.excursion_destinations?.[0]?.destination?.destination_images?.[0]?.image_url;
+
+                return {
+                    id: res.id,
+                    excursionTitle: res.excursion?.title || 'Sin título',
+                    excursionId: res.excursion_id,
+                    startDate: res.excursion?.start_date || '',
+                    endDate: res.excursion?.end_date || '',
+                    numberOfPeople: res.number_of_people || 1,
+                    totalAmount: res.total_amount,
+                    amountPaid: res.amount_paid,
+                    status: res.status,
+                    paymentType: res.payment_type,
+                    expiresAt: res.expires_at,
+                    image: firstImage,
+                };
+            });
 
             setReservations(tableData);
         } catch (error) {
