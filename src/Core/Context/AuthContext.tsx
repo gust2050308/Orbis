@@ -79,7 +79,7 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             if (error) throw error
 
             toast.success('Inicio de sesión exitoso')
-            router.push('/Views/dashboard')
+            router.push('/Views/excursions')
         } catch (error) {
             console.error('Error en signIn:', error)
             const errorMessage = error instanceof Error ? error.message : 'Error al iniciar sesión'
@@ -106,7 +106,7 @@ const AuthProvider: FC<{ children: ReactNode }> = ({ children }) => {
             if (error) throw error
 
             toast.success('¡Cuenta creada! Revisa tu correo para confirmar.')
-            router.push('/Views/dashboard')
+            router.push('/Views/excursions')
         } catch (error) {
             console.error('Error en signUp:', error)
             const errorMessage = error instanceof Error ? error.message : 'Error al crear cuenta'
