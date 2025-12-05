@@ -307,8 +307,8 @@ export function DestinationList({ refreshTrigger }: DestinationListProps) {
                                     className="border-[#256EFF]/20 hover:shadow-xl transition-shadow"
                                 >
                                     <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex-1 min-w-0">
+                                        <div className="flex items-start justify-between truncate">
+                                            <div className="flex-1 min-w-0 truncate">
                                                 <CardTitle className="text-[#102542] text-lg truncate">
                                                     {destination.name}
                                                 </CardTitle>

@@ -95,10 +95,12 @@ export default function DashboardPage() {
 
   // Sign out non-admin users
   useEffect(() => {
-    if (userRole === 'guest' || userRole === 'customer') {
+    if (userRole === 'customer') {
+      router.push('/Views/Excursions');
+    } else if (userRole === 'guest') {
       signOut(); // This already redirects to '/'
     }
-  }, [userRole, signOut]);
+  }, [userRole, signOut, router]);
 
   if (userRole !== 'admin') {
     return <div>Acceso denegado. Redirigiendo...</div>;

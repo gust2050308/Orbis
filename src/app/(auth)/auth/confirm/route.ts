@@ -27,7 +27,7 @@ export async function GET(request: NextRequest) {
     } else if (code) {
       const { error } = await supabase.auth.exchangeCodeForSession(code);
       if (!error) {
-        return NextResponse.redirect(new URL("/Views/dashboard", request.url));
+        return NextResponse.redirect(new URL("/Views/Excursions", request.url));
       }
     }
 
