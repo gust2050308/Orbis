@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { KPICards } from "@/modules/Dashboard/components/KPICards";
 import { RevenueChart } from "@/modules/Dashboard/components/RevenueChart";
 import { TopDestinations } from "@/modules/Dashboard/components/TopDestinations";
@@ -15,8 +15,7 @@ import {
 } from "@/modules/Dashboard/services/dashboardService";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/Core/CustomHooks/useAuth";
-import { useRouter } from "next/navigation";
+import { AdminProtectedPage } from "@/Core/Components/AdminProtectedPage";
 
 // Loading components
 function KPISkeleton() {
@@ -58,83 +57,93 @@ function TableSkeleton() {
   );
 }
 
-async function DashboardContent() {
-  // Fetch all data in parallel
-  const [kpis, revenue, topDestinations, topExcursions, upcoming] = await Promise.all([
-    getDashboardKPIs(),
-    getMonthlyRevenue(4),
-    getTopDestinations(5),
-    getTopExcursions(5),
-    getUpcomingExcursions(),
-  ]);
+function DashboardContent() {
+  const [data, setData] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+
+    async function fetchData() {
+      try {
+        const [kpis, revenue, topDestinations, topExcursions, upcoming] = await Promise.all([
+          getDashboardKPIs(),
+          getMonthlyRevenue(4),
+          getTopDestinations(5),
+          getTopExcursions(5),
+          getUpcomingExcursions(),
+        ]);
+
+        if (mounted) {
+          setData({ kpis, revenue, topDestinations, topExcursions, upcoming });
+          setIsLoading(false);
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+        if (mounted) {
+          setIsLoading(false);
+        }
+      }
+    }
+
+    fetchData();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (isLoading || !data) {
+    return (
+      <>
+        <KPISkeleton />
+        <ChartSkeleton />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TableSkeleton />
+          <TableSkeleton />
+        </div>
+        <TableSkeleton />
+      </>
+    );
+  }
 
   return (
     <>
       {/* KPIs Section */}
-      <KPICards data={kpis} />
+      <KPICards data={data.kpis} />
 
       {/* Revenue Chart */}
-      <RevenueChart data={revenue} />
+      <RevenueChart data={data.revenue} />
 
       {/* Two columns: Top Destinations | Top Excursions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <TopDestinations data={topDestinations} />
-        <TopExcursionsTable data={topExcursions} />
+        <TopDestinations data={data.topDestinations} />
+        <TopExcursionsTable data={data.topExcursions} />
       </div>
 
       {/* Upcoming Excursions Table */}
-      <UpcomingExcursionsTable data={upcoming} />
+      <UpcomingExcursionsTable data={data.upcoming} />
     </>
   );
 }
 
 export default function DashboardPage() {
-
-  const { userRole, signOut } = useAuth();
-  const router = useRouter();
-
-  // Sign out non-admin users
-  useEffect(() => {
-    if (userRole === 'customer') {
-      router.push('/Views/Excursions');
-    } else if (userRole === 'guest') {
-      signOut(); // This already redirects to '/'
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userRole]); // Only depend on userRole to prevent infinite loop
-
-  if (userRole !== 'admin') {
-    return <div>Acceso denegado. Redirigiendo...</div>;
-  }
-
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-[#102542] bg-gradient-to-r from-[#256EFF] to-[#07BEB8] bg-clip-text text-transparent">
-          Dashboard Administrativo
-        </h1>
-        <p className="text-muted-foreground mt-1">
-          Resumen general del negocio y operaciones
-        </p>
-      </div>
+    <AdminProtectedPage>
+      <div className="space-y-6 p-6">
+        {/* Header */}
+        <div className="mb-6">
+          <h1 className="text-3xl font-bold text-[#102542] bg-gradient-to-r from-[#256EFF] to-[#07BEB8] bg-clip-text text-transparent">
+            Dashboard Administrativo
+          </h1>
+          <p className="text-muted-foreground mt-1">
+            Resumen general del negocio y operaciones
+          </p>
+        </div>
 
-      {/* Dashboard Content with Suspense */}
-      <Suspense
-        fallback={
-          <>
-            <KPISkeleton />
-            <ChartSkeleton />
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <TableSkeleton />
-              <TableSkeleton />
-            </div>
-            <TableSkeleton />
-          </>
-        }
-      >
+        {/* Dashboard Content */}
         <DashboardContent />
-      </Suspense>
-    </div>
+      </div>
+    </AdminProtectedPage>
   );
 }
