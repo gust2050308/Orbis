@@ -100,7 +100,8 @@ export default function DashboardPage() {
     } else if (userRole === 'guest') {
       signOut(); // This already redirects to '/'
     }
-  }, [userRole, signOut, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userRole]); // Only depend on userRole to prevent infinite loop
 
   if (userRole !== 'admin') {
     return <div>Acceso denegado. Redirigiendo...</div>;
